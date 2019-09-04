@@ -1,1 +1,4 @@
-# TODO: Add build scripts here.
+.PHONY: default init build
+
+default:
+	make build -C screen

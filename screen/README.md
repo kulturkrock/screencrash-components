@@ -2,10 +2,12 @@
 This is the screen component for Screencrash/Skärmkrock.
 
 ## Requirements
-Requirements are declared in the requirements.txt file. Run `pip install -r requirements.txt` in order to install these.
+Requirements are handled with the handy utility pipenv. Pipenv combines the strengths of pip and venv into one.
+
+Requirements are declared in the Pipfile. Run `pipenv install` in order to install these and initialize the venv.
 
 If you want to make it even easier, just run make in the screen folder. This will create a virtual environment for you and install all required packages in this environment.
-To enter the venv and get access to the installed requirements, run `venv\Scripts\activate.bat` (Windows) or `venv/Scripts/activate` (Unix).
+To enter the venv and get access to the installed requirements, run `pipenv shell`.
 
 ## Running tests
 The file screen.py is provided as an entry point for testing. Run this program to display videos or images.

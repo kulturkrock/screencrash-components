@@ -1,33 +1,9 @@
-.PHONY: default init venv build
-
-PythonBin = python
-ActivateScript = venv\Scripts\activate.bat
-DeactivateScript = venv\Scripts\deactivate.bat
-
-ifeq ($(OS),Linux)
-	PythonBin = python3
-	ActivateScript = venv\Scripts\activate
-	DeactivateScript = venv\Scripts\deactivate
-endif
+.PHONY: default init build
 
 default: build
 
-venv:
-	$(PythonBin) -m venv venv
+init:
+	pipenv install
 
-latest_pip:
-	$(ActivateScript) && \
-		python -m pip install --upgrade pip && \
-	$(DeactivateScript)
-	
-fetch_requirements:
-	$(ActivateScript) && \
-		pip install -r requirements.txt && \
-	$(DeactivateScript)
-	
-	
-init: venv latest_pip fetch_requirements
-	
 build: init
-	$(ActivateScript) && \
-	$(DeactivateScript)
+	@echo "No build step required."

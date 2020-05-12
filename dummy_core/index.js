@@ -7,12 +7,12 @@ wss.on('connection', function connection(ws) {
     console.log("Got connection!");
 
     ws.on('message', async function incoming(data) {
-        // Uncomment to test messages FROM client (may do it hard to enter commands)
         let arrData = data.split(",").map(x => parseInt(x));
         if (arrData[0] == 0x00 && arrData[arrData.length-1] == 0xFF){
             let text = arrData.splice(1, arrData.length-2).map(x => String.fromCharCode(x)).join("");
             let obj = JSON.parse(text);
-            console.log(JSON.stringify(obj));
+            // Uncomment to test messages FROM client (may do it hard to enter commands)
+            // console.log(JSON.stringify(obj));
         } else {
             console.log("Received invalid data: %s", data);
         }

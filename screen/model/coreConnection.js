@@ -1,8 +1,9 @@
 
 module.exports = class CoreConnection {
 
-    constructor(address, reconnect = true, reconnectWait = 3000){
+    constructor(address, onMessageCallback = null, reconnect = true, reconnectWait = 3000){
         this.address = address;
+        this.onMessageCallback = onMessageCallback;
         this.reconnect = reconnect;
         this.reconnectWait = reconnectWait;
         this.socket = null;
@@ -42,8 +43,13 @@ module.exports = class CoreConnection {
 
         let msg = await this._extractData(event.data);
         if (msg != null){
-            console.log("Got message: ");
-            console.log(msg);
+            if (this.onMessageCallback){
+                this.onMessageCallback(msg);
+            } else{
+                console.log("Got message: ");
+                console.log(msg);
+
+            }
         } else {
             console.log("Warning: Got badly formatted message");
         }

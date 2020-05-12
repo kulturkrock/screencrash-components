@@ -10,22 +10,6 @@ module.exports = class CoreConnection {
         this.connect();
     }
 
-    getAnnounceMessage(){
-        return {
-            "type": "announce",
-            "component": "screen",
-            "channel": 1
-        };
-    }
-
-    getHeartbeatMessage(){
-        return {
-            "type": "heartbeat",
-            "component": "screen",
-            "channel": 1
-        };
-    }
-
     connect(){
 
         if (this.heartbeatInterval != null){
@@ -38,32 +22,25 @@ module.exports = class CoreConnection {
         this.socket.addEventListener("close", this.onDisconnected.bind(this));
 
         // TODO: Adjust time according to spec
-        this.heartbeatInterval = setInterval(this.sendHeartbeat.bind(this), 1000);
+        this.heartbeatInterval = setInterval(this._sendHeartbeat.bind(this), 1000);
     }
 
     send(dataObj){
-        let output = this.dataToUTF8Array(JSON.stringify(dataObj));
+        let output = this._dataToUTF8Array(JSON.stringify(dataObj));
         output.unshift(0x00);
         output.push(0xFF);
         this.socket.send(output);
     }
 
-    sendHeartbeat(){
-
-        if (this.socket != null && this.socket.readyState === WebSocket.OPEN){
-            this.send(this.getHeartbeatMessage());
-        }
-    }
-
     onConnected(event){
 
         console.log("Connected to server: " + event.target.url);
-        this.send(this.getAnnounceMessage());
+        this.send(this._getAnnounceMessage());
     }
 
     async onMessage(event){
 
-        let msg = await this.extractData(event.data);
+        let msg = await this._extractData(event.data);
         if (msg != null){
             console.log("Got message: ");
             console.log(msg);
@@ -86,7 +63,30 @@ module.exports = class CoreConnection {
         }
     }
 
-    async extractData(blob){
+    _getAnnounceMessage(){
+        return {
+            "type": "announce",
+            "component": "screen",
+            "channel": 1
+        };
+    }
+
+    _getHeartbeatMessage(){
+        return {
+            "type": "heartbeat",
+            "component": "screen",
+            "channel": 1
+        };
+    }
+
+    _sendHeartbeat(){
+
+        if (this.socket != null && this.socket.readyState === WebSocket.OPEN){
+            this.send(this._getHeartbeatMessage());
+        }
+    }
+
+    async _extractData(blob){
 
         let data = await blob.arrayBuffer();
         let view = new Int8Array(data);
@@ -104,7 +104,7 @@ module.exports = class CoreConnection {
     
     /* Joinked from stack overflow. Appears on multiple places
     so I dont really know who to give cred to */
-    dataToUTF8Array(str) {
+    _dataToUTF8Array(str) {
         let utf8 = [];
         for (let i = 0; i < str.length; i++) {
             let charcode = str.charCodeAt(i);

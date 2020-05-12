@@ -1,0 +1,21 @@
+{
+  "name": "screencrash-component-screen",
+  "version": "1.0.0",
+  "description": "Screen component for screencrash",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/kulturkrock/screencrash-components",
+  "keywords": [
+    "screencrash",
+    "kulturkrock",
+    "screen",
+    "video"
+  ],
+  "author": "Kulturkrock",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^8.2.5"
+  }
+}

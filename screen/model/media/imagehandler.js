@@ -18,8 +18,8 @@ module.exports = class ImageHandler extends MediaHandler {
         }
     }
 
-    populateUI(uiElement){
-        uiElement.innerHTML = "Image object";
+    populateUI(uiElement, createMessage){
+        uiElement.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.resource}'>`; 
     }
 
 }

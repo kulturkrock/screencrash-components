@@ -4,11 +4,13 @@ module.exports = class MediaHandler {
     constructor(id, dom){
         this.id = id;
         this.ui = this._createMediaWrapper(dom);
-        this.populateUI(this.ui);
     }
 
     handleMessage(msg){
         switch(msg.command){
+            case "create":
+                this.populateUI(this.ui, msg);
+                break;
             case "destroy":
                 this.destroy(); break;
             default:
@@ -19,12 +21,12 @@ module.exports = class MediaHandler {
     _createMediaWrapper(dom){
         let element = dom.createElement("div");
         element.id = "wrapper-" + this.id;
-        element.class = "media-wrapper";
+        element.className = "media-wrapper";
         dom.body.appendChild(element);
         return element;
     }
 
-    populateUI(uiElement){
+    populateUI(uiElement, createMessage){
         uiElement.innerHTML = "Basic Media object";
     }
 

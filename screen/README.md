@@ -1,12 +1,12 @@
 # Screen component
 
 ## Installing
-This project is built with Electron. Install Electron from [here]().
+This project is built with Electron.
 
-Run ```npm install``` from screen folder to install all dependencies.
+Run ```npm install``` from the screen folder to install all dependencies.
 
 ## Running
-Run the project with ```electron .```
+Run the project with ```node_modules/electron/dist/electron.exe .``` from the screen folder.
 
 ## Visual Studio Code project
 This is also available as a visual studio code project. Just open the folder in Visual studio code and it should automagically know stuff like how to run etc. Yay!

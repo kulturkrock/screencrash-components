@@ -6,7 +6,7 @@ This project is built with Electron.
 Run ```npm install``` from the screen folder to install all dependencies.
 
 ## Running
-Run the project with ```node_modules/electron/dist/electron.exe .``` from the screen folder.
+Run the project with ```node_modules/electron/dist/electron.exe .``` from the screen folder (use backslashes if running in Windows CMD).
 
 ## Visual Studio Code project
 This is also available as a visual studio code project. Just open the folder in Visual studio code and it should automagically know stuff like how to run etc. Yay!

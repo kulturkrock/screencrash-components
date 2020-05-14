@@ -14,6 +14,9 @@ module.exports = class MediaHandler {
                 if (msg.visible){
                     this.setVisible(true);
                 }
+                if (msg.layer){
+                    this.setLayer(msg.layer);
+                }
                 this.populateUI(this.ui, msg);
                 break;
             case "show":
@@ -24,6 +27,9 @@ module.exports = class MediaHandler {
                 break;
             case "viewport":
                 this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
+                break;
+            case "layer":
+                this.setLayer(msg.layer);
                 break;
             case "destroy":
                 this.destroy(); break;
@@ -69,6 +75,10 @@ module.exports = class MediaHandler {
         if (height !== undefined){
             this.ui.style.height = height + suffix;
         }
+    }
+
+    setLayer(layer){
+        this.ui.style.zIndex = layer;
     }
 
     destroy(){

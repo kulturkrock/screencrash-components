@@ -30,8 +30,13 @@ module.exports = class CommandRouter {
 
     createHandler(msg){
         let entityId = msg.entity_id;
-        this.handlers[entityId] = this.createHandlerFromType(entityId, msg.type);
-        this.sendMessageToHandler(entityId, msg);
+
+        if (!(entityId in this.handlers)){
+            this.handlers[entityId] = this.createHandlerFromType(entityId, msg.type);
+            this.sendMessageToHandler(entityId, msg);
+        } else {
+            console.log("Warning: Trying to create media with an id that already exists");
+        }
     }
 
     createHandlerFromType(entityId, type){

@@ -24,6 +24,15 @@ Once in the dummy_core prompt, here are some examples that will trigger actions 
 /* Show image */
 {"command": "create", "entity_id": 1338, "type": "image", "channel": 1, "resource": "file:///C:/Users/matzl/Pictures/options.PNG"}
 {"command": "show", "entity_id": 1338, "channel": 1}
+
+/* Set viewport size (any media). All size arguments are optional */
+{"command": "viewport", "x": 50, "y": 50, "width": 50, "height": 50, "usePercentage": false}
+{"command": "viewport", "width": 50, "usePercentage": true}
+
+/* Advanced creation of media objects (combine commands) */
+{"command": "create", "entity_id": 1338, "type": "image", "channel": 1, "resource": "file:///C:/Users/matzl/Pictures/options.PNG", "x": 50, "y": 50, "width": 50, "height": 50, "usePercentage": false}
+
+{"command": "create", "entity_id": 1338, "type": "image", "channel": 1, "resource": "file:///C:/Users/matzl/Pictures/options.PNG", "width": 50, "height": 50, "usePercentage": true, "visible": true}
 ```
 
 Change the resource paths to paths that exist on your file system. At the moment only MP4 files are supported for videos.

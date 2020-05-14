@@ -9,6 +9,11 @@ module.exports = class MediaHandler {
     handleMessage(msg){
         switch(msg.command){
             case "create":
+                // It is acceptable to include viewport info already in create message.
+                this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
+                if (msg.visible){
+                    this.setVisible(true);
+                }
                 this.populateUI(this.ui, msg);
                 break;
             case "show":
@@ -16,6 +21,9 @@ module.exports = class MediaHandler {
                 break;
             case "hide":
                 this.setVisible(false);
+                break;
+            case "viewport":
+                this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
                 break;
             case "destroy":
                 this.destroy(); break;
@@ -44,6 +52,22 @@ module.exports = class MediaHandler {
             } else {
                 this.ui.style.display = "none";
             }
+        }
+    }
+
+    setViewport(x, y, width, height, percentage = false){
+        let suffix = (percentage ? "%" : "px");
+        if (x !== undefined){
+            this.ui.style.left = x + suffix;
+        }
+        if (y !== undefined){
+            this.ui.style.top = y + suffix;
+        }
+        if (width !== undefined){
+            this.ui.style.width = width + suffix;
+        }
+        if (height !== undefined){
+            this.ui.style.height = height + suffix;
         }
     }
 

@@ -10,6 +10,7 @@ div.media-wrapper{
     width: 100%;
     height: 100%;
     background:rgba(255, 255, 255, 0);
+    /* border:1px solid black;  /* used for debugging purposes */
 }
 
 img.image-media{

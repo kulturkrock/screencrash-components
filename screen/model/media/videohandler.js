@@ -7,6 +7,17 @@ module.exports = class VideoHandler extends MediaHandler {
         super(id, dom);
     }
 
+    init(createMessage){
+        this.uiWrapper.innerHTML = `
+            <video id = "video-${this.id}" class = "video-media" muted>
+                <source src="${createMessage.resource}" type="video/mp4" />
+            </video>
+        `;
+        
+        this.videoNode = this.uiWrapper.getElementsByTagName("video")[0];
+        this.videoNode.onended = (e) => this.destroy();
+    }
+
     handleMessage(msg){
         if (!msg.command){
             return;
@@ -24,17 +35,6 @@ module.exports = class VideoHandler extends MediaHandler {
         }
     }
 
-    populateUI(uiElement, createMessage){
-        uiElement.innerHTML = `
-            <video id = "video-${this.id}" class = "video-media" muted>
-                <source src="${createMessage.resource}" type="video/mp4" />
-            </video>
-        `;
-        
-        this.videoNode = uiElement.getElementsByTagName("video")[0];
-        this.videoNode.onended = (e) => this.destroy();
-    }
-
     /* Either plays or pauses video, depending on the given argument */
     play(play = true){
         if (this.videoNode){
@@ -45,5 +45,4 @@ module.exports = class VideoHandler extends MediaHandler {
             }
         }
     }
-
 }

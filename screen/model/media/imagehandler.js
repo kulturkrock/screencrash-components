@@ -7,6 +7,10 @@ module.exports = class ImageHandler extends MediaHandler {
         super(id, dom);
     }
 
+    init(createMessage){
+        this.uiWrapper.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.resource}'>`; 
+    }
+
     handleMessage(msg){
         if (!msg.command){
             return;
@@ -17,9 +21,4 @@ module.exports = class ImageHandler extends MediaHandler {
                 super.handleMessage(msg);
         }
     }
-
-    populateUI(uiElement, createMessage){
-        uiElement.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.resource}'>`; 
-    }
-
 }

@@ -3,22 +3,22 @@ module.exports = class MediaHandler {
 
     constructor(id, dom){
         this.id = id;
-        this.ui = this._createMediaWrapper(dom);
+        this.uiWrapper = this._createMediaWrapper(dom);
+    }
+    
+    init(msg){
+        this.uiWrapper.innerHTML = "Basic Media object";
     }
 
     handleMessage(msg){
         switch(msg.command){
-            case "create":
-                this.populateUI(this.ui, msg);
-                break;
+            /* Add commands for all media types here */
             case "show":
                 this.setVisible(true);
                 break;
             case "hide":
                 this.setVisible(false);
                 break;
-            case "destroy":
-                this.destroy(); break;
             default:
                 console.log("Warning: Unhandled command '%s'", msg.command);
         }
@@ -28,27 +28,23 @@ module.exports = class MediaHandler {
         let element = dom.createElement("div");
         element.id = "wrapper-" + this.id;
         element.className = "media-wrapper";
-        element.style.display = "none";
+        element.style.visibility = "hidden";
         dom.body.appendChild(element);
         return element;
     }
 
-    populateUI(uiElement, createMessage){
-        uiElement.innerHTML = "Basic Media object";
-    }
-
     setVisible(visible){
-        if (this.ui){
+        if (this.uiWrapper){
             if (visible){
-                this.ui.style.display = "block";
+                this.uiWrapper.style.visibility = "visible";
             } else {
-                this.ui.style.display = "none";
+                this.uiWrapper.style.visibility = "hidden";
             }
         }
     }
-
+	
     destroy(){
-        this.ui.parentNode.removeChild(this.ui);
+        this.uiWrapper.parentNode.removeChild(this.uiWrapper);
     }
 
 }

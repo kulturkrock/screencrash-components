@@ -8,16 +8,16 @@ wss.on('connection', function connection(ws) {
 
     ws.on('message', async function incoming(data) {
         try {
-            let obj = JSON.parse(data);
+            const obj = JSON.parse(data);
             // Uncomment to test messages FROM client (may do it hard to enter commands)
             // console.log(JSON.stringify(obj));
         } catch(e){
-            console.log("Received invalid data: %s", data);
+            console.log(`Received invalid data: {data}`);
         }
     });
 });
 
-var stdin = process.openStdin();
+const stdin = process.openStdin();
 
 stdin.addListener("data", function(d) {
     try{

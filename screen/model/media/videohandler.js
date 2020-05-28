@@ -19,9 +19,6 @@ module.exports = class VideoHandler extends MediaHandler {
     }
 
     handleMessage(msg){
-        if (!msg.command){
-            return;
-        }
 
         switch(msg.command){
             default:

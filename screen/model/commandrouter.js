@@ -1,7 +1,6 @@
 
-let MediaHandler = require("./media/mediahandler");
-let VideoHandler = require("./media/videohandler");
-let ImageHandler = require("./media/imagehandler");
+const VideoHandler = require("./media/videohandler");
+const ImageHandler = require("./media/imagehandler");
 
 module.exports = class CommandRouter {
 
@@ -16,20 +15,26 @@ module.exports = class CommandRouter {
         console.log("CommandHandler got message: " + JSON.stringify(msg));
 
         // Handle creation and destruction of handlers, delegate all else.
-        switch(msg.command){
-            case "create":
-                this.createHandler(msg);
-                break;
-            case "destroy":
-                this.destroyHandler(msg);
-                break;
-            default:
-                this.sendMessageToHandler(msg.entity_id, msg);
+        try{
+            switch(msg.command){
+                case "create":
+                    this.createHandler(msg);
+                    break;
+                case "destroy":
+                    this.destroyHandler(msg);
+                    break;
+                default:
+                    this.sendMessageToHandler(msg.entity_id, msg);
+                    break;
+            }
+        } catch(e) {
+            console.log(`An error occured: {e}`);
+            // TODO: Report error back to core?
         }
     }
 
     createHandler(msg){
-        let entityId = msg.entity_id;
+        const entityId = msg.entity_id;
         this.handlers[entityId] = this.createHandlerFromType(entityId, msg.type);
         this.handlers[entityId].init(msg);
     }
@@ -39,13 +44,12 @@ module.exports = class CommandRouter {
             case "video": return new VideoHandler(entityId, this.dom);
             case "image": return new ImageHandler(entityId, this.dom);
             default:
-                console.log("Warning: Unsupported media type %s", type);
-                return new MediaHandler(entityId, this.dom);
+                throw `Unsupported media type {type}`;
         }
     }
 
     destroyHandler(msg){
-        let entityId = msg.entity_id;
+        const entityId = msg.entity_id;
         this.handlers[entityId].destroy();
         delete this.handlers[entityId];
     }

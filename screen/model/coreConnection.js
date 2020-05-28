@@ -36,9 +36,9 @@ module.exports = class CoreConnection {
         this.send(this._getAnnounceMessage());
     }
 
-    async onMessage(event){
+    onMessage(event){
 
-        let msg = JSON.parse(event.data);
+        const msg = JSON.parse(event.data);
         if (msg != null){
             if (this.onMessageCallback){
                 this.onMessageCallback(msg);

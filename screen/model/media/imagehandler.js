@@ -12,9 +12,6 @@ module.exports = class ImageHandler extends MediaHandler {
     }
 
     handleMessage(msg){
-        if (!msg.command){
-            return;
-        }
 
         switch(msg.command){
             default:

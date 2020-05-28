@@ -3,16 +3,16 @@ module.exports = class MediaHandler {
 
     constructor(id, dom){
         this.id = id;
-        this.ui = this._createMediaWrapper(dom);
+        this.uiWrapper = this._createMediaWrapper(dom);
+    }
+    
+    init(msg){
+        this.uiWrapper.innerHTML = "Basic Media object";
     }
 
     handleMessage(msg){
         switch(msg.command){
-            case "create":
-                this.populateUI(this.ui, msg);
-                break;
-            case "destroy":
-                this.destroy(); break;
+            /* Add commands for all media types here */
             default:
                 console.log("Warning: Unhandled command '%s'", msg.command);
         }
@@ -26,12 +26,8 @@ module.exports = class MediaHandler {
         return element;
     }
 
-    populateUI(uiElement, createMessage){
-        uiElement.innerHTML = "Basic Media object";
-    }
-
     destroy(){
-        this.ui.parentNode.removeChild(this.ui);
+        this.uiWrapper.parentNode.removeChild(this.uiWrapper);
     }
 
 }

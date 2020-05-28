@@ -31,7 +31,7 @@ module.exports = class CommandRouter {
     createHandler(msg){
         let entityId = msg.entity_id;
         this.handlers[entityId] = this.createHandlerFromType(entityId, msg.type);
-        this.sendMessageToHandler(entityId, msg);
+        this.handlers[entityId].init(msg);
     }
 
     createHandlerFromType(entityId, type){
@@ -46,7 +46,7 @@ module.exports = class CommandRouter {
 
     destroyHandler(msg){
         let entityId = msg.entity_id;
-        this.sendMessageToHandler(entityId, msg);
+        this.handlers[entityId].destroy();
         delete this.handlers[entityId];
     }
 

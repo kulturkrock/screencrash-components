@@ -12,7 +12,7 @@ wss.on('connection', function connection(ws) {
             // Uncomment to test messages FROM client (may do it hard to enter commands)
             // console.log(JSON.stringify(obj));
         } catch(e){
-            console.log(`Received invalid data: {data}`);
+            console.log(`Received invalid data: ${data}`);
         }
     });
 });

@@ -28,7 +28,7 @@ module.exports = class CommandRouter {
                     break;
             }
         } catch(e) {
-            console.log(`An error occured: {e}`);
+            console.log(`An error occured: ${e}`);
             // TODO: Report error back to core?
         }
     }
@@ -44,7 +44,7 @@ module.exports = class CommandRouter {
             case "video": return new VideoHandler(entityId, this.dom);
             case "image": return new ImageHandler(entityId, this.dom);
             default:
-                throw `Unsupported media type {type}`;
+                throw `Unsupported media type ${type}`;
         }
     }
 

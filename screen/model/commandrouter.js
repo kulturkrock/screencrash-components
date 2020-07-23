@@ -1,6 +1,7 @@
 
 const VideoHandler = require("./media/videohandler");
 const ImageHandler = require("./media/imagehandler");
+const WebsiteHandler = require("./media/websitehandler");
 
 module.exports = class CommandRouter {
 
@@ -41,8 +42,9 @@ module.exports = class CommandRouter {
 
     createHandlerFromType(entityId, type){
         switch(type){
-            case "video": return new VideoHandler(entityId, this.dom);
-            case "image": return new ImageHandler(entityId, this.dom);
+            case "video":   return new VideoHandler(entityId, this.dom);
+            case "image":   return new ImageHandler(entityId, this.dom);
+            case "website": return new WebsiteHandler(entityId, this.dom);
             default:
                 throw `Unsupported media type ${type}`;
         }

@@ -1,22 +1,18 @@
 
-const MediaHandler = require('./mediahandler');
+const MediaHandler = require("./mediahandler");
 
 module.exports = class ImageHandler extends MediaHandler {
 
-    constructor(id, dom){
-        super(id, dom);
-    }
-
-    init(createMessage){
+    init(createMessage) {
         super.init(createMessage);
-        this.uiWrapper.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.resource}'>`; 
+        this.uiWrapper.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.resource}'>`;
     }
 
-    handleMessage(msg){
-
-        switch(msg.command){
+    handleMessage(msg) {
+        switch (msg.command) {
             default:
                 super.handleMessage(msg);
         }
     }
-}
+
+};

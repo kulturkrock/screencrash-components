@@ -35,6 +35,12 @@ module.exports = class CommandRouter {
 
     createHandler(msg){
         const entityId = msg.entity_id;
+
+        if (entityId in this.handlers){
+            console.log(`Warning: A handler for entity id ${entityId} was overwritten by a new one`);
+            this.destroyHandler(entityId);
+        }
+
         this.handlers[entityId] = this.createHandlerFromType(entityId, msg.type);
         this.handlers[entityId].init(msg);
     }
@@ -57,6 +63,8 @@ module.exports = class CommandRouter {
     sendMessageToHandler(entityId, msg){
         if (entityId in this.handlers){
             this.handlers[entityId].handleMessage(msg);
+        } else {
+            console.log(`Warning: Trying to issue command for non-existant entity id ${entityId}`);
         }
     }
 

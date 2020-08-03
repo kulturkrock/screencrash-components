@@ -8,8 +8,10 @@ module.exports = class VideoHandler extends MediaHandler {
     }
 
     init(createMessage){
+        super.init(createMessage);
+
         this.uiWrapper.innerHTML = `
-            <video id = "video-${this.id}" class = "video-media" autoplay="autoplay" muted>
+            <video id = "video-${this.id}" class = "video-media" muted>
                 <source src="${createMessage.resource}" type="video/mp4" />
             </video>
         `;
@@ -21,8 +23,26 @@ module.exports = class VideoHandler extends MediaHandler {
     handleMessage(msg){
 
         switch(msg.command){
+            case "play":
+                this.play();
+                break;
+            case "pause":
+                this.pause();
+                break;
             default:
                 super.handleMessage(msg);
+        }
+    }
+
+    play(){
+        if (this.videoNode){
+            this.videoNode.play();
+        }
+    }
+
+    pause(){
+        if (this.videoNode){
+            this.videoNode.pause();
         }
     }
 

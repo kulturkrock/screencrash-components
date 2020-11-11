@@ -1,5 +1,5 @@
 
-const MediaHandler = require("./mediahandler");
+const MediaHandler = require('./mediahandler');
 
 module.exports = class VideoHandler extends MediaHandler {
 
@@ -12,16 +12,16 @@ module.exports = class VideoHandler extends MediaHandler {
             </video>
         `;
 
-        this.videoNode = this.uiWrapper.getElementsByTagName("video")[0];
+        this.videoNode = this.uiWrapper.getElementsByTagName('video')[0];
         this.videoNode.onended = (e) => this.destroy();
     }
 
     handleMessage(msg) {
         switch (msg.command) {
-            case "play":
+            case 'play':
                 this.play();
                 break;
-            case "pause":
+            case 'pause':
                 this.pause();
                 break;
             default:

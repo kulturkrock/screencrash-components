@@ -1,5 +1,5 @@
 
-const MediaHandler = require("./mediahandler");
+const MediaHandler = require('./mediahandler');
 
 module.exports = class WebsiteHandler extends MediaHandler {
 

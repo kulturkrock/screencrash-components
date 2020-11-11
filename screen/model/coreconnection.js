@@ -17,9 +17,9 @@ module.exports = class CoreConnection {
         }
 
         this.socket = new WebSocket(this.address);
-        this.socket.addEventListener("open", this.onConnected.bind(this));
-        this.socket.addEventListener("message", this.onMessage.bind(this));
-        this.socket.addEventListener("close", this.onDisconnected.bind(this));
+        this.socket.addEventListener('open', this.onConnected.bind(this));
+        this.socket.addEventListener('message', this.onMessage.bind(this));
+        this.socket.addEventListener('close', this.onDisconnected.bind(this));
 
         // TODO: Adjust time according to spec
         this.heartbeatInterval = setInterval(this._sendHeartbeat.bind(this), 1000);
@@ -30,7 +30,7 @@ module.exports = class CoreConnection {
     }
 
     onConnected(event) {
-        console.log("Connected to server: " + event.target.url);
+        console.log('Connected to server: ' + event.target.url);
         this.send(this._getAnnounceMessage());
     }
 
@@ -40,39 +40,39 @@ module.exports = class CoreConnection {
             if (this.onMessageCallback) {
                 this.onMessageCallback(msg);
             } else {
-                console.log("Got unhandled message: ");
+                console.log('Got unhandled message: ');
                 console.log(msg);
             }
         } else {
-            console.log("Warning: Got badly formatted message");
+            console.log('Warning: Got badly formatted message');
         }
     }
 
     onDisconnected(event) {
         if (!event.wasClean) {
             if (this.reconnect) {
-                console.log("Trying to reconnect in %d ms", this.reconnectWait);
+                console.log('Trying to reconnect in %d ms', this.reconnectWait);
                 setTimeout(this.connect.bind(this), this.reconnectWait);
             } else {
-                console.log("Unexpectedly lost connection");
+                console.log('Unexpectedly lost connection');
             }
         } else {
-            console.log("Disconnected from server");
+            console.log('Disconnected from server');
         }
     }
 
     _getAnnounceMessage() {
         return {
-            type: "announce",
-            component: "screen",
+            type: 'announce',
+            component: 'screen',
             channel: 1
         };
     }
 
     _getHeartbeatMessage() {
         return {
-            type: "heartbeat",
-            component: "screen",
+            type: 'heartbeat',
+            component: 'screen',
             channel: 1
         };
     }

@@ -20,6 +20,6 @@ module.exports = {
             not give us a match here since there is overlap).
         */
         const re = `^${name}$|^${name} | ${name}|${name} `;
-        element.className = element.className.replace(new RegExp(re, "g"), "");
+        element.className = element.className.replace(new RegExp(re, 'g'), '');
     }
 };

@@ -1,5 +1,5 @@
 
-const { addClass, removeClass } = require("../domutils");
+const { addClass, removeClass } = require('../domutils');
 
 module.exports = class MediaHandler {
 
@@ -16,7 +16,7 @@ module.exports = class MediaHandler {
             this.setVisible(true);
         }
 
-        if (typeof msg.layer === "number") {
+        if (typeof msg.layer === 'number') {
             this.setLayer(msg.layer);
         }
     }
@@ -24,16 +24,16 @@ module.exports = class MediaHandler {
     handleMessage(msg) {
         switch (msg.command) {
             /* Add commands for all media types here */
-            case "show":
+            case 'show':
                 this.setVisible(true);
                 break;
-            case "hide":
+            case 'hide':
                 this.setVisible(false);
                 break;
-            case "viewport":
+            case 'viewport':
                 this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
                 break;
-            case "layer":
+            case 'layer':
                 this.setLayer(msg.layer);
                 break;
             default:
@@ -42,9 +42,9 @@ module.exports = class MediaHandler {
     }
 
     _createMediaWrapper(dom) {
-        const element = dom.createElement("div");
-        element.id = "wrapper-" + this.id;
-        element.className = "media-wrapper hidden";
+        const element = dom.createElement('div');
+        element.id = 'wrapper-' + this.id;
+        element.className = 'media-wrapper hidden';
         dom.body.appendChild(element);
         return element;
     }
@@ -52,15 +52,15 @@ module.exports = class MediaHandler {
     setVisible(visible) {
         if (this.uiWrapper) {
             if (visible) {
-                removeClass(this.uiWrapper, "hidden");
+                removeClass(this.uiWrapper, 'hidden');
             } else {
-                addClass(this.uiWrapper, "hidden");
+                addClass(this.uiWrapper, 'hidden');
             }
         }
     }
 
     setViewport(x, y, width, height, percentage = false) {
-        const suffix = (percentage ? "%" : "px");
+        const suffix = (percentage ? '%' : 'px');
 
         if (x !== undefined) {
             this.uiWrapper.style.left = x + suffix;

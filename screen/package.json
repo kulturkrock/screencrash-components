@@ -4,7 +4,8 @@
   "description": "Screen component for screencrash",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "lint": "node_modules/.bin/eslint ."
   },
   "repository": "https://github.com/kulturkrock/screencrash-components",
   "keywords": [

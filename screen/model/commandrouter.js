@@ -1,7 +1,7 @@
 
-const VideoHandler = require("./media/videohandler");
-const ImageHandler = require("./media/imagehandler");
-const WebsiteHandler = require("./media/websitehandler");
+const VideoHandler = require('./media/videohandler');
+const ImageHandler = require('./media/imagehandler');
+const WebsiteHandler = require('./media/websitehandler');
 
 module.exports = class CommandRouter {
 
@@ -12,15 +12,15 @@ module.exports = class CommandRouter {
 
     handleMessage(msg) {
         // Log occurrence
-        console.log("CommandHandler got message: " + JSON.stringify(msg));
+        console.log('CommandHandler got message: ' + JSON.stringify(msg));
 
         // Handle creation and destruction of handlers, delegate all else.
         try {
             switch (msg.command) {
-                case "create":
+                case 'create':
                     this.createHandler(msg);
                     break;
-                case "destroy":
+                case 'destroy':
                     this.destroyHandler(msg);
                     break;
                 default:
@@ -47,9 +47,9 @@ module.exports = class CommandRouter {
 
     createHandlerFromType(entityId, type) {
         switch (type) {
-            case "video": return new VideoHandler(entityId, this.dom);
-            case "image": return new ImageHandler(entityId, this.dom);
-            case "website": return new WebsiteHandler(entityId, this.dom);
+            case 'video': return new VideoHandler(entityId, this.dom);
+            case 'image': return new ImageHandler(entityId, this.dom);
+            case 'website': return new WebsiteHandler(entityId, this.dom);
             default:
                 throw new Error(`Unsupported media type ${type}`);
         }

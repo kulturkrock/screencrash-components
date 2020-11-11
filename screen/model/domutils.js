@@ -4,9 +4,8 @@
 */
 
 module.exports = {
-    
     addClass: (element, name) => {
-        if (element.className.length == 0){
+        if (element.className.length === 0) {
             element.className = name;
         } else {
             element.className += ` ${name}`;
@@ -20,7 +19,7 @@ module.exports = {
             we want to match with both "^test " and "test " (" test" would
             not give us a match here since there is overlap).
         */
-        const re = `^${name}\$|^${name} | ${name}|${name} `;
-        element.className = element.className.replace(new RegExp(re, "g"), "");
+        const re = `^${name}$|^${name} | ${name}|${name} `;
+        element.className = element.className.replace(new RegExp(re, 'g'), '');
     }
-}
+};

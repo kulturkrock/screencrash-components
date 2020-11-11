@@ -3,11 +3,7 @@ const MediaHandler = require('./mediahandler');
 
 module.exports = class VideoHandler extends MediaHandler {
 
-    constructor(id, dom){
-        super(id, dom);
-    }
-
-    init(createMessage){
+    init(createMessage) {
         super.init(createMessage);
 
         this.uiWrapper.innerHTML = `
@@ -15,18 +11,17 @@ module.exports = class VideoHandler extends MediaHandler {
                 <source src="${createMessage.resource}" type="video/mp4" />
             </video>
         `;
-        
-        this.videoNode = this.uiWrapper.getElementsByTagName("video")[0];
+
+        this.videoNode = this.uiWrapper.getElementsByTagName('video')[0];
         this.videoNode.onended = (e) => this.destroy();
     }
 
-    handleMessage(msg){
-
-        switch(msg.command){
-            case "play":
+    handleMessage(msg) {
+        switch (msg.command) {
+            case 'play':
                 this.play();
                 break;
-            case "pause":
+            case 'pause':
                 this.pause();
                 break;
             default:
@@ -34,16 +29,16 @@ module.exports = class VideoHandler extends MediaHandler {
         }
     }
 
-    play(){
-        if (this.videoNode){
+    play() {
+        if (this.videoNode) {
             this.videoNode.play();
         }
     }
 
-    pause(){
-        if (this.videoNode){
+    pause() {
+        if (this.videoNode) {
             this.videoNode.pause();
         }
     }
 
-}
+};

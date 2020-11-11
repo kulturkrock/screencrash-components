@@ -3,11 +3,7 @@ const MediaHandler = require('./mediahandler');
 
 module.exports = class WebsiteHandler extends MediaHandler {
 
-    constructor(id, dom){
-        super(id, dom);
-    }
-
-    init(createMessage){
+    init(createMessage) {
         super.init(createMessage);
 
         this.uiWrapper.innerHTML = `
@@ -18,11 +14,11 @@ module.exports = class WebsiteHandler extends MediaHandler {
         `;
     }
 
-    handleMessage(msg){
-
-        switch(msg.command){
+    handleMessage(msg) {
+        switch (msg.command) {
             default:
                 super.handleMessage(msg);
         }
     }
-}
+
+};

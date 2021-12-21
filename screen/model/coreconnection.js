@@ -64,14 +64,14 @@ module.exports = class CoreConnection {
     _getAnnounceMessage() {
         return {
             type: 'announce',
-            component: 'screen',
+            client: 'screen',
             channel: 1
         };
     }
 
     _getHeartbeatMessage() {
         return {
-            type: 'heartbeat',
+            messageType: 'heartbeat',
             component: 'screen',
             channel: 1
         };

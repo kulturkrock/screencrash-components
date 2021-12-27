@@ -1,5 +1,4 @@
 import argparse
-import threading
 import websocket
 from time import sleep
 from commandhandler import CommandHandler
@@ -18,18 +17,7 @@ def main():
 
     cmd_handler = CommandHandler()
     core_connection = CoreConnection(cmd_handler.handle_message, not args.no_reconnect, args.reconnect_time)
-    connection_thread = threading.Thread(target=core_connection.run)
-    connection_thread.start()
-
-    # Wait for Ctrl + C
-    while True:
-        try:
-            input()
-        except KeyError:
-            break
-
-    core_connection.stop()
-    connection_thread.join()
+    core_connection.run()
     print("Shutting down audio component...")
 
 

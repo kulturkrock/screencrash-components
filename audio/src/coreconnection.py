@@ -20,11 +20,14 @@ class CoreConnection:
                                             on_error=self._on_error,
                                             on_close=self._on_close)
 
-            self._ws.run_forever(ping_interval=1, ping_payload=self._get_heartbeat_msg())
+            critical_error = self._ws.run_forever(ping_interval=1, ping_payload=self._get_heartbeat_msg())
 
-            if self._reconnect:
+            # Don't reconnect if user presses Ctrl+C
+            if self._reconnect and critical_error:
                 sleep(self._reconnect_time / 1000.0)
                 print("Reconnecting...")
+            else:
+                self.stop()
 
     def stop(self):
         self._reconnect = False
@@ -52,8 +55,11 @@ class CoreConnection:
         ws.send(json.dumps({ "client": "audio" }))
 
     def _on_error(self, ws, error):
-        print("Got error: {}".format(error if str(error) else "[Unknown]"))
+        # Print errors, but not if user presses Ctrl+C
+        if not isinstance(error, KeyboardInterrupt):
+            print("Got error: {}".format(error if str(error) else "[Unknown]"))
 
     def _on_close(self, ws, close_status_code, close_msg):
-        print("Connection closed to core. Code={}. Message={}".format(close_status_code, close_msg))
+        extra_info = f"Code={close_status_code}. Message={close_msg}" if close_status_code else ""
+        print(f"Connection closed to core. {extra_info}")
         self._ws = None

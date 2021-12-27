@@ -43,7 +43,7 @@ class CoreConnection:
         if self._handle_message_callback:
             data = json.loads(message)
             response = self._handle_message_callback(data)
-            if response is None:
+            if not response is None:
                 ws.send(json.dumps(response))
         else:
             print("Got message: {} (no message handler)".format(message))

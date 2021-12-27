@@ -41,8 +41,6 @@ The following commands are available:
 Run the project with ```python main.py``` from the audio folder. Possible arguments are the following:
 | Parameter         | Type   | Default value | Description                                            |
 | ----------------- | ------ | ------------- | ------------------------------------------------------ |
-| --address         | string | "localhost"   | IP address or hostname to Core instance                |
-| --port            | int    | 8001          | Port to Core instance                                  |
 | --enable-ws-debug |        | False         | If set, enables websocket debug information            |
 | --no-reconnect    |        | False         | If set, disables the reconnect feature                 |
 | --reconnect-time  | int    | 3000          | Time (in ms) from a disconnect to reconnection attempt |

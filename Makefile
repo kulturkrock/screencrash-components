@@ -1,1 +1,4 @@
-# TODO: Add build scripts here.
+.PHONY: dev
+
+dev:
+	make -C screen dev

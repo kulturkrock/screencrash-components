@@ -8,8 +8,9 @@ Run ```npm install``` from the screen folder to install all dependencies.
 ## Running
 Run the project with ```node_modules/electron/dist/electron.exe .``` from the screen folder (use backslashes if running in Windows CMD).
 
-## Visual Studio Code project
-This is also available as a visual studio code project. Just open the folder in Visual studio code and it should automagically know stuff like how to run etc. Yay!
+## Visual Studio Code configuration
+There is a run configuration available for the screen module. Just open the entire repo folder in Visual studio code and
+it should automagically know how to run etc. Yay!
 
 ## Using dummy-core to trigger actions
 To run dummy-core, cd to the dummy_core directory and issue the command ```npm start```.

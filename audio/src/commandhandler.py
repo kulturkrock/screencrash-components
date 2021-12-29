@@ -13,10 +13,9 @@ class CommandHandler:
         return result
 
     def handle_message(self, message):
-        cmd = message["command"]
-        entity_id = message["entity_id"]
-
         try:
+            cmd = message["command"]
+            entity_id = message["entity_id"]
             return self._handle_command(cmd, entity_id, message)
         except Exception as e:
             return self._create_error_msg(f"Failed to carry out command. {e}")
@@ -37,10 +36,8 @@ class CommandHandler:
             return self._create_error_msg("Unsupported command")
 
     def _add_sound(self, entity_id, params):
-        path = params.get("path")
-        if path is None:
-            return self._create_error_msg("Invalid path when adding audio")
-        loops = params.get("loops", 0)
+        path = params["asset"]
+        loops = params.get("loops", 1) - 1  # pygame uses zero indexing for this
         autostart = params.get("autostart", False)
         sound_id = self._mixer.add(path=path, loops=loops, autostart=autostart)
         if sound_id is None:
@@ -69,7 +66,7 @@ class CommandHandler:
         sound_id = self._sounds.get(entity_id)
         if not sound_id:
             return self._create_error_msg("Audio not found. Did you add it?")
-        if params.get("volume_left") or params.get("volume_right"):
+        if "volume_left" in params or "volume_right" in params:
             left = params.get("volume_left", 0)
             right = params.get("volume_right", 0)
             self._mixer.set_volume_stereo(sound_id, left / 100, right / 100)

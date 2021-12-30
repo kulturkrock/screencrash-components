@@ -29,6 +29,12 @@ class CoreConnection:
             else:
                 self.stop()
 
+    def send(self, data):
+        if self._ws is not None:
+            self._ws.send(json.dumps(data))
+        else:
+            print("Failed to send data on websocket. Seems to be down")
+
     def stop(self):
         self._reconnect = False
         if self._ws:

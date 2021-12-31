@@ -5,34 +5,22 @@ from audio import AudioMixer
 class CommandHandler:
 
     def __init__(self):
-        self._mixer = AudioMixer(self._handle_event)
+        self._mixer = AudioMixer(self._handle_mixer_event)
         self._custom_event_handler = None
         self._sounds = {}
 
-    def _send_event(self, data):
+    def set_event_handler(self, event_handler):
+        self._custom_event_handler = event_handler
+
+    def _emit(self, data):
         if self._custom_event_handler:
             self._custom_event_handler(data)
         else:
             print(f"Got an event: {data}")
 
-    def _create_error_msg(self, msg):
-        result = {"messageType": "cmd-error", "msg": msg}
-        return result
-
-    def set_event_handler(self, event_handler):
-        self._custom_event_handler = event_handler
-
-    def handle_message(self, message):
-        try:
-            cmd = message["command"]
-            entity_id = message["entityId"]
-            return self._handle_command(cmd, entity_id, message)
-        except Exception as e:
-            return self._create_error_msg(f"Failed to carry out command. {e}")
-
-    def _handle_event(self, event_type, entity_id):
+    def _handle_mixer_event(self, event_type, entity_id):
         if event_type == "removed":
-            self._send_event({"messageType": "effect-removed", "entityId": entity_id})
+            self._emit({"messageType": "effect-removed", "entityId": entity_id})
         elif event_type == "changed" or event_type == "added":
             sound_info = self._mixer.get_sound_info(entity_id)
             data = {
@@ -44,11 +32,23 @@ class CommandHandler:
                 "lastSync": sound_info["last_sync"],
                 "playing": sound_info["playing"],
                 "muted": sound_info["muted"],
-                "volume": int(self._mixer.get_volume(entity_id) * 100),
+                "volume": self._mixer.get_volume(entity_id),
             }
-            self._send_event(data)
+            self._emit(data)
         else:
             print(f"Got unhandled event {event_type} with sound_id={entity_id}")
+
+    def _create_error_msg(self, msg):
+        result = {"messageType": "cmd-error", "msg": msg}
+        return result
+
+    def handle_message(self, message):
+        try:
+            cmd = message["command"]
+            entity_id = message["entityId"]
+            return self._handle_command(cmd, entity_id, message)
+        except Exception as e:
+            return self._create_error_msg(f"Failed to carry out command. {e}")
 
     def _handle_command(self, cmd, entity_id, message):
         if cmd == "add":
@@ -103,6 +103,6 @@ class CommandHandler:
         if "volumeLeft" in params or "volumeRight" in params:
             left = params.get("volumeLeft", 0)
             right = params.get("volumeRight", 0)
-            self._mixer.set_volume_stereo(entity_id, left / 100, right / 100)
+            self._mixer.set_volume_stereo(entity_id, left, right)
         else:
-            self._mixer.set_volume(entity_id, params.get("volume", 50) / 100)
+            self._mixer.set_volume(entity_id, params.get("volume", 50))

@@ -18,15 +18,21 @@ class AudioMixer:
         self._end_events = {}
         self._current_end_event = 1000
 
-        self._event_handle_thread = threading.Thread(target=self._event_handler)
+        self._event_handle_thread = threading.Thread(target=self._handle_pygame_event)
         self._event_handle_thread.start()
 
-    def _event_handler(self):
+    def _emit(self, event_type, sound_id):
+        if self._event_callback:
+            self._event_callback(event_type, sound_id)
+        else:
+            print(f"Mixer wants to emit event {event_type} for {sound_id}")
+
+    def _handle_pygame_event(self):
         while True:
             event = pg.event.wait()
             if event.type in self._end_events:
                 sound_id = self._end_events[event.type]
-                self._event_callback("removed", sound_id)
+                self._emit("removed", sound_id)
 
     def add(self, sound_id, path, loops=0, autostart=False):
         sound = pg.mixer.Sound(path)
@@ -52,7 +58,7 @@ class AudioMixer:
         if not autostart:
             free_channel.pause()
 
-        self._event_callback("added", sound_id)
+        self._emit("added", sound_id)
 
         return True
 
@@ -69,7 +75,7 @@ class AudioMixer:
         if sound_channel:
             self._update_sound_info(sound_id, True)
             sound_channel.unpause()
-            self._event_callback("changed", sound_id)
+            self._emit("changed", sound_id)
         return sound_channel is not None
 
     def pause(self, sound_id):
@@ -77,7 +83,7 @@ class AudioMixer:
         if sound_channel:
             self._update_sound_info(sound_id, False)
             sound_channel.pause()
-            self._event_callback("changed", sound_id)
+            self._emit("changed", sound_id)
         return sound_channel is not None
 
     def stop(self, sound_id):
@@ -97,8 +103,8 @@ class AudioMixer:
         sound_channel = self._sounds.get(sound_id)
         if sound_channel:
             sound = sound_channel.get_sound()
-            return sound.get_volume() if sound else -1
-        return -1
+            return round(sound.get_volume()*100) if sound else 0
+        return 0
 
     def get_duration(self, sound_id):
         sound_channel = self._sounds.get(sound_id)
@@ -117,12 +123,12 @@ class AudioMixer:
         if sound_channel and sound_info:
             sound = sound_channel.get_sound()
             if sound:
-                sound.set_volume(volume)
+                sound.set_volume(volume/100)
                 sound_info["last_volume"] = volume
                 if volume != 0:
                     sound_info["muted"] = False
                 if not skip_event:
-                    self._event_callback("changed", sound_id)
+                    self._emit("changed", sound_id)
         return sound is not None
 
     def set_volume_stereo(self, sound_id, volume_left, volume_right, skip_event=False):
@@ -132,12 +138,12 @@ class AudioMixer:
         if sound_channel and sound_info:
             sound = sound_channel.get_sound()
             if sound:
-                sound.set_volume(volume_left, volume_right)
+                sound.set_volume(volume_left/100, volume_right/100)
                 sound_info["last_volume"] = (volume_left, volume_right)
                 if volume_left != 0 or volume_right != 0:
                     sound_info["muted"] = False
                 if not skip_event:
-                    self._event_callback("changed", sound_id)
+                    self._emit("changed", sound_id)
         return sound is not None
 
     def toggle_mute(self, sound_id):
@@ -157,5 +163,5 @@ class AudioMixer:
                 sound_info["last_volume"] = prev_volume
                 sound_info["muted"] = True
                 
-            self._event_callback("changed", sound_id)
+            self._emit("changed", sound_id)
 

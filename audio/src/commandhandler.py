@@ -1,13 +1,28 @@
-import time
+import os
 from pathlib import Path
-from audio import AudioMixer
 
 class CommandHandler:
 
     def __init__(self):
-        self._mixer = AudioMixer(self._handle_mixer_event)
+        backend = os.environ.get("SCREENCRASH_AUDIO_BACKEND", "default")
+        self._mixer = self._get_audio_backend(backend)
         self._custom_event_handler = None
         self._sounds = {}
+
+    def _get_audio_backend(self, backend):
+        if backend == "vlc":
+            print(f"Using audio backend vlc")
+            from audio_vlc import AudioMixerVLC
+            return AudioMixerVLC(self._handle_mixer_event)
+        elif backend == "pygame":
+            print(f"Using audio backend pygame")
+            from audio_pygame import AudioMixer
+            return AudioMixer(self._handle_mixer_event)
+        else:
+            # Default
+            print(f"Using audio backend default (vlc)")
+            from audio_vlc import AudioMixerVLC
+            return AudioMixerVLC(self._handle_mixer_event)
 
     def set_event_handler(self, event_handler):
         self._custom_event_handler = event_handler
@@ -31,6 +46,7 @@ class CommandHandler:
                 "currentTime": sound_info["current_time"],
                 "lastSync": sound_info["last_sync"],
                 "playing": sound_info["playing"],
+                "looping": sound_info["looping"],
                 "muted": sound_info["muted"],
                 "volume": self._mixer.get_volume(entity_id),
             }
@@ -51,6 +67,7 @@ class CommandHandler:
             return self._create_error_msg(f"Failed to carry out command. {e}")
 
     def _handle_command(self, cmd, entity_id, message):
+        print(f"Got command: {cmd} {message}")
         if cmd == "add":
             self._add_sound(entity_id, message)
         elif cmd == "play":

@@ -41,6 +41,9 @@ class CommandHandler:
     def _create_error_msg(self, msg):
         result = {"messageType": "cmd-error", "msg": msg}
         return result
+    
+    def initial_message(self):
+        return {"client": "audio", "files": {} } # TODO: Calculate real hashes
 
     def handle_message(self, message):
         try:

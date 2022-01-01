@@ -10,6 +10,15 @@ module.exports = class CommandRouter {
         this.handlers = {};
     }
 
+    async initialMessage() {
+        return {
+            type: 'announce',
+            client: 'screen',
+            channel: 1,
+            files: {} // TODO: Calculate real hashes
+        };
+    }
+
     handleMessage(msg) {
         // Log occurrence
         console.log('CommandHandler got message: ' + JSON.stringify(msg));

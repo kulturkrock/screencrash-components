@@ -1,8 +1,9 @@
 
 module.exports = class CoreConnection {
 
-    constructor(address, onMessageCallback = null, reconnect = true, reconnectWait = 3000) {
+    constructor(address, getAnnounceMessage = null, onMessageCallback = null, reconnect = true, reconnectWait = 3000) {
         this.address = address;
+        this.getAnnounceMessage = getAnnounceMessage;
         this.onMessageCallback = onMessageCallback;
         this.reconnect = reconnect;
         this.reconnectWait = reconnectWait;
@@ -29,9 +30,11 @@ module.exports = class CoreConnection {
         this.socket.send(JSON.stringify(dataObj));
     }
 
-    onConnected(event) {
+    async onConnected(event) {
         console.log('Connected to server: ' + event.target.url);
-        this.send(this._getAnnounceMessage());
+        if (this.getAnnounceMessage) {
+            this.send(await this.getAnnounceMessage());
+        }
     }
 
     onMessage(event) {
@@ -59,14 +62,6 @@ module.exports = class CoreConnection {
         } else {
             console.log('Disconnected from server');
         }
-    }
-
-    _getAnnounceMessage() {
-        return {
-            type: 'announce',
-            client: 'screen',
-            channel: 1
-        };
     }
 
     _getHeartbeatMessage() {

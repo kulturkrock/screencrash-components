@@ -5,7 +5,8 @@ from time import sleep
 
 class CoreConnection:
 
-    def __init__(self, on_message_callback, reconnect = True, reconnect_time = 3000):
+    def __init__(self, get_announce_message, on_message_callback, reconnect = True, reconnect_time = 3000):
+        self._get_announce_message = get_announce_message
         self._handle_message_callback = on_message_callback
         self._reconnect = reconnect
         self._reconnect_time = reconnect_time
@@ -58,7 +59,7 @@ class CoreConnection:
 
     def _on_open(self, ws):
         print("Connected to core")
-        ws.send(json.dumps({ "client": "audio" }))
+        ws.send(json.dumps(self._get_announce_message()))
 
     def _on_error(self, ws, error):
         # Print errors, but not if user presses Ctrl+C

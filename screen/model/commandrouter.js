@@ -59,6 +59,7 @@ module.exports = class CommandRouter {
         this.handlers[entityId].init(msg);
         this.handlers[entityId].addEventListener('changed', this.onHandlerChanged.bind(this));
         this.handlers[entityId].addEventListener('destroyed', this.onHandlerDestroyed.bind(this));
+        this.handlers[entityId].addEventListener('error-msg', (ev) => this.reportError(ev.detail));
 
         this.sendFunction({
             messageType: 'effect-added',

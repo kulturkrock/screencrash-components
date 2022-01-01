@@ -14,6 +14,7 @@ module.exports = class VideoHandler extends MediaHandler {
         `;
 
         this.videoNode = this.uiWrapper.getElementsByTagName('video')[0];
+        this.videoNode.addEventListener('error', this.onError.bind(this), true);
         this.videoNode.onended = this.onEnded.bind(this);
         this.videoNode.onloadeddata = this.onLoadedData.bind(this);
         this.videoNode.ontimeupdate = this.onTimeUpdated.bind(this);
@@ -54,7 +55,6 @@ module.exports = class VideoHandler extends MediaHandler {
     }
 
     isPlaying() {
-        console.log(`Checking if ready. Paused=${this.videoNode.paused} ended=${this.videoNode.ended} state=${this.videoNode.readyState} duration=${this.videoNode.duration}`);
         return this.videoNode &&
                !this.videoNode.paused &&
                !this.videoNode.ended &&
@@ -97,6 +97,13 @@ module.exports = class VideoHandler extends MediaHandler {
         this.dispatchEvent(
             new CustomEvent('changed', { detail: this.id })
         );
+    }
+
+    onError() {
+        this.dispatchEvent(
+            new CustomEvent('error-msg', { detail: `Unable to play video with id ${this.id}` })
+        );
+        this.destroy();
     }
 
     onEnded() {

@@ -67,7 +67,6 @@ class CommandHandler:
             return self._create_error_msg(f"Failed to carry out command. {e}")
 
     def _handle_command(self, cmd, entity_id, message):
-        print(f"Got command: {cmd} {message}")
         if cmd == "add":
             self._add_sound(entity_id, message)
         elif cmd == "play":

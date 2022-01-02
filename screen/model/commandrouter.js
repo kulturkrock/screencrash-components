@@ -8,6 +8,7 @@ module.exports = class CommandRouter {
     constructor(dom) {
         this.dom = dom;
         this.handlers = {};
+        this.regularUpdateInterval = setInterval(this._regularUpdate.bind(this), 500);
     }
 
     init(sendFunction) {
@@ -16,6 +17,7 @@ module.exports = class CommandRouter {
 
     reportError(err) {
         if (this.sendFunction) {
+            console.log(`Got some errors: ${err}`);
             this.sendFunction({
                 messageType: 'cmd-error',
                 msg: err
@@ -27,7 +29,7 @@ module.exports = class CommandRouter {
 
     handleMessage(msg) {
         // Log occurrence
-        console.log('CommandHandler got message: ' + JSON.stringify(msg));
+        // console.log('CommandHandler got message: ' + JSON.stringify(msg));
 
         // Handle creation and destruction of handlers, delegate all else.
         try {
@@ -36,7 +38,7 @@ module.exports = class CommandRouter {
                     this.createHandler(msg);
                     break;
                 case 'destroy':
-                    this.destroyHandler(msg);
+                    this.destroyHandler(msg.entityId);
                     break;
                 default:
                     this.sendMessageToHandler(msg.entityId, msg);
@@ -78,14 +80,19 @@ module.exports = class CommandRouter {
         }
     }
 
-    destroyHandler(msg) {
-        const entityId = msg.entityId;
-        this.handlers[entityId].destroy();
+    destroyHandler(entityId) {
+        if (entityId in this.handlers) {
+            this.handlers[entityId].destroy();
+            delete this.handlers[entityId];
+        }
     }
 
     onHandlerDestroyed(event) {
         const entityId = event.detail;
-        delete this.handlers[entityId];
+        if (entityId in this.handlers) {
+            delete this.handlers[entityId];
+        }
+
         this.sendFunction({
             messageType: 'effect-removed',
             entityId: entityId
@@ -93,13 +100,16 @@ module.exports = class CommandRouter {
     }
 
     onHandlerChanged(event) {
-        console.log(`Received change event for ${event.detail}`);
         const entityId = event.detail;
-        this.sendFunction({
-            messageType: 'effect-changed',
-            entityId: entityId,
-            ...this.handlers[entityId].getState()
-        });
+        if (entityId in this.handlers) {
+            this.sendFunction({
+                messageType: 'effect-changed',
+                entityId: entityId,
+                ...this.handlers[entityId].getState()
+            });
+        } else {
+            this.reportError('Got update events on untracked effect');
+        }
     }
 
     sendMessageToHandler(entityId, msg) {
@@ -113,6 +123,24 @@ module.exports = class CommandRouter {
             }
         } else {
             this.reportError(`Trying to issue command for non-existant entity id ${entityId}`);
+        }
+    }
+
+    _regularUpdate() {
+        if (!this.sendFunction) {
+            return;
+        }
+
+        const nofStaticKeys = 1; // effectType is always present
+        for (const entityId in this.handlers) {
+            const state = this.handlers[entityId].getRegularUpdateState();
+            if (Object.keys(state).length > nofStaticKeys) {
+                this.sendFunction({
+                    messageType: 'effect-changed',
+                    entityId: entityId,
+                    ...state
+                });
+            }
         }
     }
 

@@ -23,6 +23,14 @@ module.exports = class VideoHandler extends MediaHandler {
         this.lastRecordedTime = -1;
     }
 
+    getRegularUpdateState() {
+        return {
+            ...super.getRegularUpdateState(),
+            effectType: 'video',
+            currentImage: this.getScreenshot()
+        };
+    }
+
     getState() {
         return {
             ...super.getState(),
@@ -34,7 +42,8 @@ module.exports = class VideoHandler extends MediaHandler {
             playing: this.isPlaying(),
             looping: this.isLooping(),
             muted: this.isMuted(),
-            volume: this.getVolume()
+            volume: this.getVolume(),
+            currentImage: this.getScreenshot()
         };
     }
 
@@ -81,6 +90,18 @@ module.exports = class VideoHandler extends MediaHandler {
         return this.videoNode ? this.videoNode.volume : 0;
     }
 
+    getScreenshot() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.videoNode.clientWidth;
+        canvas.height = this.videoNode.clientHeight;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(this.videoNode, 0, 0, canvas.width, canvas.height);
+
+        const result = canvas.toDataURL('image/jpeg', 0.1);
+        return result;
+    }
+
     play() {
         if (this.videoNode) {
             this.videoNode.play();
@@ -93,16 +114,8 @@ module.exports = class VideoHandler extends MediaHandler {
         }
     }
 
-    sendChangedEvent() {
-        this.dispatchEvent(
-            new CustomEvent('changed', { detail: this.id })
-        );
-    }
-
     onError() {
-        this.dispatchEvent(
-            new CustomEvent('error-msg', { detail: `Unable to play video with id ${this.id}` })
-        );
+        this.emitError(`Unable to play video with id ${this.id}`);
         this.destroy();
     }
 
@@ -118,7 +131,7 @@ module.exports = class VideoHandler extends MediaHandler {
     }
 
     onLoadedData() {
-        this.sendChangedEvent();
+        this.emitEvent('changed', this.id);
     }
 
     onTimeUpdated(event) {
@@ -126,7 +139,7 @@ module.exports = class VideoHandler extends MediaHandler {
             // Time has changed backwards. Either we looped over and
             // started over or we time jumped. In both cases, we probably
             // want to notify the world about this change.
-            this.sendChangedEvent();
+            this.emitEvent('changed', this.id);
         }
         this.lastRecordedTime = this.videoNode.currentTime;
     }

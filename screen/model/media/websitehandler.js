@@ -14,6 +14,13 @@ module.exports = class WebsiteHandler extends MediaHandler {
         `;
     }
 
+    getRegularUpdateState() {
+        return {
+            ...super.getRegularUpdateState(),
+            effectType: 'web'
+        };
+    }
+
     getState() {
         return {
             ...super.getState(),

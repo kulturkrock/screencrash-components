@@ -1,12 +1,12 @@
-
 const VideoHandler = require('./media/videohandler');
 const ImageHandler = require('./media/imagehandler');
 const WebsiteHandler = require('./media/websitehandler');
 
 module.exports = class CommandRouter {
 
-    constructor(dom) {
+    constructor(dom, fileHandler) {
         this.dom = dom;
+        this.fileHandler = fileHandler;
         this.handlers = {};
     }
 
@@ -31,6 +31,9 @@ module.exports = class CommandRouter {
                     break;
                 case 'destroy':
                     this.destroyHandler(msg);
+                    break;
+                case 'file':
+                    this.fileHandler.writeFile(msg);
                     break;
                 default:
                     this.sendMessageToHandler(msg.entity_id, msg);

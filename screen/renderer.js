@@ -1,7 +1,10 @@
-
+const path = require('path');
 // Init command handler
 const CommandRouter = require('./model/commandrouter');
-const commandRouter = new CommandRouter(document);
+const FileHandler = require('./model/fileHandler');
+const resourcesPath = path.join(__dirname, 'resources');
+const fileHandler = new FileHandler(resourcesPath);
+const commandRouter = new CommandRouter(document, fileHandler);
 
 // Init connection to core
 const Connection = require('./model/coreconnection');

@@ -15,7 +15,7 @@ module.exports = class FileHandler {
         const { path: filePath, data } = message;
         const fullPath = path.join(this.resourcesPath, filePath);
         const dir = path.dirname(fullPath);
-        mkdir(dir, { recursive: true });
+        await mkdir(dir, { recursive: true });
         const buffer = Buffer.from(data, 'base64');
         await writeFile(fullPath, buffer);
         console.log(`Wrote file ${filePath}`);

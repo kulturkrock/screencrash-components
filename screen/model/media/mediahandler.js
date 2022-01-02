@@ -1,9 +1,10 @@
 
-const { addClass, removeClass } = require('../domutils');
+const { addClass, removeClass, hasClass } = require('../domutils');
 
-module.exports = class MediaHandler {
+module.exports = class MediaHandler extends EventTarget {
 
     constructor(id, dom) {
+        super();
         this.id = id;
         this.uiWrapper = this._createMediaWrapper(dom);
     }
@@ -19,6 +20,18 @@ module.exports = class MediaHandler {
         if (typeof msg.layer === 'number') {
             this.setLayer(msg.layer);
         }
+    }
+
+    getState() {
+        return {
+            effectType: 'unknown',
+            visible: this.isVisible(),
+            viewport_x: this.getX(),
+            viewport_y: this.getY(),
+            viewport_width: this.getWidth(),
+            viewport_height: this.getHeight(),
+            layer: this.getLayer()
+        };
     }
 
     handleMessage(msg) {
@@ -38,7 +51,11 @@ module.exports = class MediaHandler {
                 break;
             default:
                 console.log(`Warning: Unhandled command ${msg.command}`);
+                return false;
         }
+
+        // If not handled we have already returned false
+        return true;
     }
 
     _createMediaWrapper(dom) {
@@ -49,6 +66,10 @@ module.exports = class MediaHandler {
         return element;
     }
 
+    isVisible() {
+        return this.uiWrapper && !hasClass(this.uiWrapper, 'hidden');
+    }
+
     setVisible(visible) {
         if (this.uiWrapper) {
             if (visible) {
@@ -57,6 +78,22 @@ module.exports = class MediaHandler {
                 addClass(this.uiWrapper, 'hidden');
             }
         }
+    }
+
+    getX() {
+        return this.uiWrapper.style.left;
+    }
+
+    getY() {
+        return this.uiWrapper.style.top;
+    }
+
+    getWidth() {
+        return this.uiWrapper.style.width;
+    }
+
+    getHeight() {
+        return this.uiWrapper.style.height;
     }
 
     setViewport(x, y, width, height, percentage = false) {
@@ -76,12 +113,19 @@ module.exports = class MediaHandler {
         }
     }
 
+    getLayer() {
+        return this.uiWrapper.style.zIndex;
+    }
+
     setLayer(layer) {
         this.uiWrapper.style.zIndex = layer;
     }
 
     destroy() {
         this.uiWrapper.parentNode.removeChild(this.uiWrapper);
+        this.dispatchEvent(
+            new CustomEvent('destroyed', { detail: this.id })
+        );
     }
 
 };

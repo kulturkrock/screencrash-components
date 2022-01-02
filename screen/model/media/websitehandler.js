@@ -8,16 +8,23 @@ module.exports = class WebsiteHandler extends MediaHandler {
 
         this.uiWrapper.innerHTML = `
             <iframe id = "website-frame-${this.id}" class = "website-frame"
-                    src = "${createMessage.resource}"
+                    src = "${createMessage.asset}"
                     frameborder = "0" height="100%" width="100%" scrolling = "no">
             </iframe>
         `;
     }
 
+    getState() {
+        return {
+            ...super.getState(),
+            effectType: 'web'
+        };
+    }
+
     handleMessage(msg) {
         switch (msg.command) {
             default:
-                super.handleMessage(msg);
+                return super.handleMessage(msg);
         }
     }
 

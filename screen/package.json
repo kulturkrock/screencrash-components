@@ -4,8 +4,8 @@
   "description": "Screen component for screencrash",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "nodemon --exec electron .",
+    "start": "npx electron .",
+    "dev": "nodemon --exec npx electron .",
     "lint": "node_modules/.bin/eslint ."
   },
   "repository": "https://github.com/kulturkrock/screencrash-components",

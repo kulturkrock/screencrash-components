@@ -1,10 +1,30 @@
 import os
 import time
 import threading
-os.add_dll_directory(r"C:\Program Files (x86)\VideoLAN\VLC")
+from functools import partial
+import platform
+import struct
+
+# -------------------- TWEAKS FOR VLC -------------------------
+is_32bit = (struct.calcsize("P") * 8 == 32)
+if platform.system() == "Windows":
+    if is_32bit:
+        os.add_dll_directory(r"C:\Program Files (x86)\VideoLAN\VLC")
+    else:
+        os.add_dll_directory(r"C:\Program Files\VideoLAN\VLC")
+elif platform.system() == "Linux":
+    # See https://github.com/pyinstaller/pyinstaller/issues/4506
+    if is_32bit:
+        os.environ["VLC_PLUGIN_PATH"] = "/usr/lib/vlc/plugins"
+    else:
+        os.environ["VLC_PLUGIN_PATH"] = "/usr/lib64/vlc/plugins"
+elif platform.system() == "Darwin":
+    # Todo: Fix for Mac OS X
+    raise RuntimeError("MacOS X not supported yet")
+# -------------------------------------------------------------
+
 import vlc
 
-from functools import partial
 
 class AudioMixerVLC:
     """

@@ -24,16 +24,6 @@ The following commands are available:
 | <code>make&nbsp;init</code> | Install dependencies                                                          |
 | <code>make&nbsp;dev</code>  | Run Audio Component in development mode, with automatic reload on file change |
 
-### Select audio backend to use
-Multiple backends are available. To select one, set the environment variable SCREENCRASH_AUDIO_BACKEND
-to one of the following:
-
-| Keyword | Resulting backend                                               |
-| ------- | --------------------------------------------------------------- |
-| vlc     | python-vlc with a new instance per audio clip                   |
-| pygame  | pygame with a new channel per audio clip. 20 channels available |
-| default | Same as vlc                                                     |
-
 ## Files and Folders
 
 | Path           |                                                                                  |

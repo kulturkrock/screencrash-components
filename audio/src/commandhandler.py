@@ -1,28 +1,12 @@
-import os
 from pathlib import Path
+from audio_vlc import AudioMixerVLC
 
 class CommandHandler:
 
     def __init__(self):
-        backend = os.environ.get("SCREENCRASH_AUDIO_BACKEND", "default")
-        self._mixer = self._get_audio_backend(backend)
+        self._mixer = AudioMixerVLC(self._handle_mixer_event)
         self._custom_event_handler = None
         self._sounds = {}
-
-    def _get_audio_backend(self, backend):
-        if backend == "vlc":
-            print(f"Using audio backend vlc")
-            from audio_vlc import AudioMixerVLC
-            return AudioMixerVLC(self._handle_mixer_event)
-        elif backend == "pygame":
-            print(f"Using audio backend pygame")
-            from audio_pygame import AudioMixer
-            return AudioMixer(self._handle_mixer_event)
-        else:
-            # Default
-            print(f"Using audio backend default (vlc)")
-            from audio_vlc import AudioMixerVLC
-            return AudioMixerVLC(self._handle_mixer_event)
 
     def set_event_handler(self, event_handler):
         self._custom_event_handler = event_handler

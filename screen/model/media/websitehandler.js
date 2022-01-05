@@ -12,12 +12,15 @@ module.exports = class WebsiteHandler extends MediaHandler {
                     frameborder = "0" height="100%" width="100%" scrolling = "no">
             </iframe>
         `;
+
+        this.name = (createMessage.displayName ? `Web: ${createMessage.displayName}` : createMessage.asset);
     }
 
     getState() {
         return {
             ...super.getState(),
-            effectType: 'web'
+            effectType: 'web',
+            name: this.name
         };
     }
 

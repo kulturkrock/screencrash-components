@@ -1,11 +1,10 @@
-import time
 from pathlib import Path
-from audio import AudioMixer
+from audio_vlc import AudioMixerVLC
 
 class CommandHandler:
 
     def __init__(self):
-        self._mixer = AudioMixer(self._handle_mixer_event)
+        self._mixer = AudioMixerVLC(self._handle_mixer_event)
         self._custom_event_handler = None
         self._sounds = {}
 
@@ -31,6 +30,7 @@ class CommandHandler:
                 "currentTime": sound_info["current_time"],
                 "lastSync": sound_info["last_sync"],
                 "playing": sound_info["playing"],
+                "looping": sound_info["looping"],
                 "muted": sound_info["muted"],
                 "volume": self._mixer.get_volume(entity_id),
             }

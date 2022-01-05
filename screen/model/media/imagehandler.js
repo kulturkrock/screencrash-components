@@ -7,14 +7,17 @@ module.exports = class ImageHandler extends MediaHandler {
     init(createMessage) {
         super.init(createMessage);
         this.uiWrapper.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.asset}'>`;
-        this.clipName = path.parse(createMessage.asset).name;
+        this.name = path.parse(createMessage.asset).name;
+        if (createMessage.displayName) {
+            this.name = createMessage.displayName; // Override name
+        }
     }
 
     getState() {
         return {
             ...super.getState(),
             effectType: 'image',
-            name: this.clipName
+            name: this.name
         };
     }
 

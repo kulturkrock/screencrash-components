@@ -13,7 +13,10 @@ module.exports = class WebsiteHandler extends MediaHandler {
             </iframe>
         `;
 
-        this.name = (createMessage.displayName ? `Web: ${createMessage.displayName}` : createMessage.asset);
+        this.name = createMessage.asset;
+        if (createMessage.displayName) {
+            this.name = createMessage.displayName; // Override name
+        }
     }
 
     getState() {

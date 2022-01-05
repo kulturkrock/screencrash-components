@@ -13,6 +13,7 @@ module.exports = class WebsiteHandler extends MediaHandler {
             </iframe>
         `;
 
+        this.asset = createMessage.asset;
         this.name = createMessage.asset;
         if (createMessage.displayName) {
             this.name = createMessage.displayName; // Override name
@@ -29,8 +30,25 @@ module.exports = class WebsiteHandler extends MediaHandler {
 
     handleMessage(msg) {
         switch (msg.command) {
+            case 'refresh':
+                this.refreshPage();
+                break;
             default:
                 return super.handleMessage(msg);
+        }
+
+        return true;
+    }
+
+    refreshPage() {
+        const el = this.uiWrapper.getElementsByTagName('iframe')[0];
+        if (el) {
+            const operationChar = (this.asset.includes('?') ? '&' : '?');
+            const randomString = (Math.random() + 1).toString(36).substring(7);
+            const newPage = `${this.asset}${operationChar}screencrash_web_component_refresh_arg=${randomString}`;
+            el.src = newPage;
+        } else {
+            console.log('Failed to refresh webpage');
         }
     }
 

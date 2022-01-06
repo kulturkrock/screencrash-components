@@ -42,8 +42,7 @@ module.exports = class CoreConnection {
             if (this.onMessageCallback) {
                 this.onMessageCallback(msg);
             } else {
-                console.log('Got unhandled message: ');
-                console.log(msg);
+                console.log(`Got unhandled message: ${msg}`);
             }
         } else {
             console.log('Warning: Got badly formatted message');

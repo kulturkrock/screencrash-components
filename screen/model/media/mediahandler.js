@@ -6,6 +6,7 @@ module.exports = class MediaHandler extends EventTarget {
     constructor(id, dom) {
         super();
         this.id = id;
+        this.isDestroyed = false;
         this.uiWrapper = this._createMediaWrapper(dom);
     }
 
@@ -20,6 +21,24 @@ module.exports = class MediaHandler extends EventTarget {
         if (typeof msg.layer === 'number') {
             this.setLayer(msg.layer);
         }
+    }
+
+    emitEvent(eventType, data) {
+        if (!this.isDestroyed) {
+            this.dispatchEvent(
+                new CustomEvent(eventType, { detail: data })
+            );
+        }
+    }
+
+    emitError(msg) {
+        this.emitEvent('error-msg', msg);
+    }
+
+    getRegularUpdateState() {
+        return {
+            effectType: 'unknown'
+        };
     }
 
     getState() {
@@ -89,11 +108,11 @@ module.exports = class MediaHandler extends EventTarget {
     }
 
     getWidth() {
-        return this.uiWrapper.style.width;
+        return this.uiWrapper.clientWidth;
     }
 
     getHeight() {
-        return this.uiWrapper.style.height;
+        return this.uiWrapper.clientHeight;
     }
 
     setViewport(x, y, width, height, percentage = false) {
@@ -122,10 +141,11 @@ module.exports = class MediaHandler extends EventTarget {
     }
 
     destroy() {
-        this.uiWrapper.parentNode.removeChild(this.uiWrapper);
-        this.dispatchEvent(
-            new CustomEvent('destroyed', { detail: this.id })
-        );
+        if (!this.isDestroyed) {
+            this.uiWrapper.parentNode.removeChild(this.uiWrapper);
+            this.emitEvent('destroyed', this.id);
+            this.isDestroyed = true;
+        }
     }
 
 };

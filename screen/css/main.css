@@ -4,7 +4,7 @@ body{
 }
 
 .hidden{
-    display:none;
+    visibility:hidden;
 }
 
 div.media-wrapper{
@@ -15,6 +15,10 @@ div.media-wrapper{
     height: 100%;
     background:rgba(255, 255, 255, 0);
     /* border:1px solid black;  /* used for debugging purposes */
+}
+
+div.media-wrapper img, div.media-wrapper video {
+    object-fit: fill;
 }
 
 img.image-media{

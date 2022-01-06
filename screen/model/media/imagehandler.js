@@ -8,6 +8,13 @@ module.exports = class ImageHandler extends MediaHandler {
         this.uiWrapper.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.asset}'>`;
     }
 
+    getRegularUpdateState() {
+        return {
+            ...super.getRegularUpdateState(),
+            effectType: 'image'
+        };
+    }
+
     getState() {
         return {
             ...super.getState(),

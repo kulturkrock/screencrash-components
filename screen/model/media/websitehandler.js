@@ -12,6 +12,12 @@ module.exports = class WebsiteHandler extends MediaHandler {
                     frameborder = "0" height="100%" width="100%" scrolling = "no">
             </iframe>
         `;
+
+        this.asset = createMessage.asset;
+        this.name = createMessage.asset;
+        if (createMessage.displayName) {
+            this.name = createMessage.displayName; // Override name
+        }
     }
 
     getRegularUpdateState() {
@@ -24,14 +30,32 @@ module.exports = class WebsiteHandler extends MediaHandler {
     getState() {
         return {
             ...super.getState(),
-            effectType: 'web'
+            effectType: 'web',
+            name: this.name
         };
     }
 
     handleMessage(msg) {
         switch (msg.command) {
+            case 'refresh':
+                this.refreshPage();
+                break;
             default:
                 return super.handleMessage(msg);
+        }
+
+        return true;
+    }
+
+    refreshPage() {
+        const el = this.uiWrapper.getElementsByTagName('iframe')[0];
+        if (el) {
+            const operationChar = (this.asset.includes('?') ? '&' : '?');
+            const randomString = (Math.random() + 1).toString(36).substring(7);
+            const newPage = `${this.asset}${operationChar}screencrash_web_component_refresh_arg=${randomString}`;
+            el.src = newPage;
+        } else {
+            console.log('Failed to refresh webpage');
         }
     }
 

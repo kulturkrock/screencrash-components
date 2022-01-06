@@ -18,9 +18,13 @@ module.exports = class VideoHandler extends MediaHandler {
         this.videoNode.onended = this.onEnded.bind(this);
         this.videoNode.onloadeddata = this.onLoadedData.bind(this);
         this.videoNode.ontimeupdate = this.onTimeUpdated.bind(this);
-        this.clipName = path.parse(createMessage.asset).name;
         this.nofLoops = (createMessage.looping ? createMessage.looping : 1) - 1;
         this.lastRecordedTime = -1;
+
+        this.name = path.parse(createMessage.asset).name;
+        if (createMessage.displayName) {
+            this.name = createMessage.displayName; // Override name
+        }
     }
 
     getRegularUpdateState() {
@@ -35,7 +39,7 @@ module.exports = class VideoHandler extends MediaHandler {
         return {
             ...super.getState(),
             effectType: 'video',
-            name: this.clipName,
+            name: this.name,
             duration: this.getDuration(),
             currentTime: this.getCurrentTime(),
             lastSync: Date.now(),

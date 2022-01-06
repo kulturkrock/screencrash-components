@@ -74,7 +74,7 @@ module.exports = class CommandRouter {
         switch (type) {
             case 'video': return new VideoHandler(entityId, this.dom);
             case 'image': return new ImageHandler(entityId, this.dom);
-            case 'website': return new WebsiteHandler(entityId, this.dom);
+            case 'web': return new WebsiteHandler(entityId, this.dom);
             default:
                 throw new Error(`Unsupported media type ${type}`);
         }

@@ -1,14 +1,23 @@
-
 const VideoHandler = require('./media/videohandler');
 const ImageHandler = require('./media/imagehandler');
 const WebsiteHandler = require('./media/websitehandler');
 
 module.exports = class CommandRouter {
 
-    constructor(dom) {
+    constructor(dom, fileHandler) {
         this.dom = dom;
+        this.fileHandler = fileHandler;
         this.handlers = {};
         this.regularUpdateInterval = setInterval(this._regularUpdate.bind(this), 500);
+    }
+
+    async initialMessage() {
+        return {
+            type: 'announce',
+            client: 'screen',
+            channel: 1,
+            files: {} // TODO: Calculate real hashes
+        };
     }
 
     init(sendFunction) {
@@ -39,6 +48,9 @@ module.exports = class CommandRouter {
                     break;
                 case 'destroy':
                     this.destroyHandler(msg.entityId);
+                    break;
+                case 'file':
+                    this.fileHandler.writeFile(msg);
                     break;
                 default:
                     this.sendMessageToHandler(msg.entityId, msg);

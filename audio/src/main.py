@@ -15,7 +15,7 @@ def main():
         websocket.enableTrace(True)
 
     cmd_handler = CommandHandler()
-    core_connection = CoreConnection(cmd_handler.handle_message, not args.no_reconnect, args.reconnect_time)
+    core_connection = CoreConnection(cmd_handler.initial_message, cmd_handler.handle_message, not args.no_reconnect, args.reconnect_time)
     cmd_handler.set_event_handler(core_connection.send)
     core_connection.run()
     print("Shutting down audio component...")

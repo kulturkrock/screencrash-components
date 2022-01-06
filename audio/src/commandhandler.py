@@ -1,10 +1,13 @@
+import base64
 from pathlib import Path
+from file_handler import FileHandler
 from audio_vlc import AudioMixerVLC
 
 class CommandHandler:
 
     def __init__(self):
         self._mixer = AudioMixerVLC(self._handle_mixer_event)
+        self._file_handler = FileHandler(Path(__file__).parent.parent / "resources")
         self._custom_event_handler = None
         self._sounds = {}
 
@@ -41,11 +44,14 @@ class CommandHandler:
     def _create_error_msg(self, msg):
         result = {"messageType": "cmd-error", "msg": msg}
         return result
+    
+    def initial_message(self):
+        return {"client": "audio", "files": {} } # TODO: Calculate real hashes
 
     def handle_message(self, message):
         try:
             cmd = message["command"]
-            entity_id = message["entityId"]
+            entity_id = message.get("entityId")
             return self._handle_command(cmd, entity_id, message)
         except Exception as e:
             return self._create_error_msg(f"Failed to carry out command. {e}")
@@ -63,6 +69,8 @@ class CommandHandler:
             self._set_volume(entity_id, message)
         elif cmd == "toggle_mute":
             self._toggle_mute(entity_id)
+        elif cmd == "file":
+            self._file_handler.write_file(Path(message["path"]), base64.b64decode(message["data"]))
         else:
             print("Unhandled message: {}".format(message))
             return self._create_error_msg("Unsupported command")

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0b1cf1d0a5d1139a2ad72ddec7eafa8ecc05f760a22aa07fd2a95e0438a550a8"
+            "sha256": "1c7673f463455273dbd91ce4ef41f551a7b3562d5dfc093c471b42a99cf78523"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -79,6 +79,14 @@
             ],
             "index": "pypi",
             "version": "==2.1.2"
+        },
+        "python-vlc": {
+            "hashes": [
+                "sha256:566f2f7c303f6800851cacc016df1c6eeec094ad63e0a49d87db9d698094f1fb",
+                "sha256:f88be06c6f819a4db2de1c586b193b5df1410ff10fca33b8c6f4e56037c46f7b"
+            ],
+            "index": "pypi",
+            "version": "==3.0.12118"
         },
         "websocket-client": {
             "hashes": [

@@ -27,7 +27,9 @@ module.exports = class CoreConnection {
     }
 
     send(dataObj) {
-        this.socket.send(JSON.stringify(dataObj));
+        if (this.socket) {
+            this.socket.send(JSON.stringify(dataObj));
+        }
     }
 
     async onConnected(event) {
@@ -52,6 +54,7 @@ module.exports = class CoreConnection {
     }
 
     onDisconnected(event) {
+        this.socket = null;
         if (!event.wasClean) {
             if (this.reconnect) {
                 console.log('Trying to reconnect in %d ms', this.reconnectWait);

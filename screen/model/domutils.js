@@ -21,5 +21,10 @@ module.exports = {
         */
         const re = `^${name}$|^${name} | ${name}|${name} `;
         element.className = element.className.replace(new RegExp(re, 'g'), '');
+    },
+
+    hasClass: (element, name) => {
+        const re = `^${name}$|^${name} | ${name}|${name} `;
+        return new RegExp(re, 'g').test(element.className);
     }
 };

@@ -1,6 +1,5 @@
 import argparse
 import websocket
-from time import sleep
 from commandhandler import CommandHandler
 from coreconnection import CoreConnection
 

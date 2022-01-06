@@ -19,6 +19,21 @@ module.exports = class CommandRouter {
         };
     }
 
+    init(sendFunction) {
+        this.sendFunction = sendFunction;
+    }
+
+    reportError(err) {
+        if (this.sendFunction) {
+            this.sendFunction({
+                messageType: 'cmd-error',
+                msg: err
+            });
+        } else {
+            console.log(`Err: ${err}`);
+        }
+    }
+
     handleMessage(msg) {
         // Log occurrence
         console.log('CommandHandler got message: ' + JSON.stringify(msg));
@@ -36,25 +51,33 @@ module.exports = class CommandRouter {
                     this.fileHandler.writeFile(msg);
                     break;
                 default:
-                    this.sendMessageToHandler(msg.entity_id, msg);
+                    this.sendMessageToHandler(msg.entityId, msg);
                     break;
             }
         } catch (e) {
-            console.log(`An error occured: ${e}`);
-            // TODO: Report error back to core?
+            this.reportError(`Failed command: ${e}`);
         }
     }
 
     createHandler(msg) {
-        const entityId = msg.entity_id;
+        const entityId = msg.entityId;
 
         if (entityId in this.handlers) {
-            console.log(`Warning: A handler for entity id ${entityId} was overwritten by a new one`);
+            this.reportError(`A handler for entity id ${entityId} was overwritten by a new one`);
             this.destroyHandler(entityId);
         }
 
         this.handlers[entityId] = this.createHandlerFromType(entityId, msg.type);
         this.handlers[entityId].init(msg);
+        this.handlers[entityId].addEventListener('changed', this.onHandlerChanged.bind(this));
+        this.handlers[entityId].addEventListener('destroyed', this.onHandlerDestroyed.bind(this));
+        this.handlers[entityId].addEventListener('error-msg', (ev) => this.reportError(ev.detail));
+
+        this.sendFunction({
+            messageType: 'effect-added',
+            entityId: entityId,
+            ...this.handlers[entityId].getState()
+        });
     }
 
     createHandlerFromType(entityId, type) {
@@ -68,16 +91,40 @@ module.exports = class CommandRouter {
     }
 
     destroyHandler(msg) {
-        const entityId = msg.entity_id;
+        const entityId = msg.entityId;
         this.handlers[entityId].destroy();
+    }
+
+    onHandlerDestroyed(event) {
+        const entityId = event.detail;
         delete this.handlers[entityId];
+        this.sendFunction({
+            messageType: 'effect-removed',
+            entityId: entityId
+        });
+    }
+
+    onHandlerChanged(event) {
+        console.log(`Received change event for ${event.detail}`);
+        const entityId = event.detail;
+        this.sendFunction({
+            messageType: 'effect-changed',
+            entityId: entityId,
+            ...this.handlers[entityId].getState()
+        });
     }
 
     sendMessageToHandler(entityId, msg) {
         if (entityId in this.handlers) {
-            this.handlers[entityId].handleMessage(msg);
+            if (this.handlers[entityId].handleMessage(msg)) {
+                this.sendFunction({
+                    messageType: 'effect-changed',
+                    entityId: entityId,
+                    ...this.handlers[entityId].getState()
+                });
+            }
         } else {
-            console.log(`Warning: Trying to issue command for non-existant entity id ${entityId}`);
+            this.reportError(`Trying to issue command for non-existant entity id ${entityId}`);
         }
     }
 

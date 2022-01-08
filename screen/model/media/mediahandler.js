@@ -18,6 +18,10 @@ module.exports = class MediaHandler extends EventTarget {
             this.setVisible(true);
         }
 
+        if (msg.opacity) {
+            this.setOpacity(msg.opacity);
+        }
+
         if (typeof msg.layer === 'number') {
             this.setLayer(msg.layer);
         }
@@ -45,6 +49,7 @@ module.exports = class MediaHandler extends EventTarget {
         return {
             effectType: 'unknown',
             visible: this.isVisible(),
+            opacity: this.getOpacity(),
             viewport_x: this.getX(),
             viewport_y: this.getY(),
             viewport_width: this.getWidth(),
@@ -61,6 +66,9 @@ module.exports = class MediaHandler extends EventTarget {
                 break;
             case 'hide':
                 this.setVisible(false);
+                break;
+            case 'opacity':
+                this.setOpacity(msg.opacity);
                 break;
             case 'viewport':
                 this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
@@ -96,6 +104,16 @@ module.exports = class MediaHandler extends EventTarget {
             } else {
                 addClass(this.uiWrapper, 'hidden');
             }
+        }
+    }
+
+    getOpacity() {
+        return this.uiWrapper.style.opacity;
+    }
+
+    setOpacity(opacity) {
+        if (opacity >= 0.0 && opacity <= 1.0) {
+            this.uiWrapper.style.opacity = opacity;
         }
     }
 

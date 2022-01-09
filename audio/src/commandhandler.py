@@ -46,7 +46,8 @@ class CommandHandler:
         return result
     
     def initial_message(self):
-        return {"client": "audio", "files": {} } # TODO: Calculate real hashes
+        hashes = self._file_handler.get_hashes()
+        return {"client": "audio", "files": hashes }
 
     def handle_message(self, message):
         try:

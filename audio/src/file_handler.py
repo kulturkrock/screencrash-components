@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 class FileHandler:
@@ -11,3 +12,22 @@ class FileHandler:
         with open(full_path, "wb") as f:
             f.write(data)
         print("Wrote file " + str(path))
+    
+    def get_hashes(self, path=None):
+        if path is None:
+            path = self._resource_path
+        if path.is_dir():
+            hashes = {}
+            for sub_path in path.iterdir():
+                hashes.update(self.get_hashes(sub_path))
+        else:
+            if path.name == ".gitignore":
+                return {}
+            with open(path, "rb") as f:
+                data = f.read()
+            checksum = hashlib.md5(data).hexdigest()
+            # Represent as a POSIX path (forward slashes) on Windows too, since
+            # Core and the component need to agree
+            relative_path = path.relative_to(self._resource_path).as_posix()
+            hashes = { relative_path: checksum }
+        return hashes

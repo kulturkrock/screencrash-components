@@ -16,7 +16,7 @@ module.exports = class CommandRouter {
             type: 'announce',
             client: 'screen',
             channel: 1,
-            files: {} // TODO: Calculate real hashes
+            files: await this.fileHandler.getHashes()
         };
     }
 

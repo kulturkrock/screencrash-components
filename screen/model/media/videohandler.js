@@ -4,12 +4,14 @@ const path = require('path');
 
 module.exports = class VideoHandler extends MediaHandler {
 
-    init(createMessage) {
-        super.init(createMessage);
+    init(createMessage, resourcesPath) {
+        super.init(createMessage, resourcesPath);
 
+        const videoPath = `${resourcesPath}/${createMessage.asset}`;
+        const autostart = createMessage.autostart === undefined || createMessage.autostart;
         this.uiWrapper.innerHTML = `
-            <video id = "video-${this.id}" class = "video-media" muted>
-                <source src="${createMessage.asset}" type="video/mp4" />
+            <video id = "video-${this.id}" class = "video-media" muted ${autostart ? 'autoplay' : ''}>
+                <source src="${videoPath}" type="video/mp4" />
             </video>
         `;
 

@@ -6,8 +6,9 @@ from audio_vlc import AudioMixerVLC
 class CommandHandler:
 
     def __init__(self):
+        self._base_path = Path(__file__).parent.parent / "resources"
         self._mixer = AudioMixerVLC(self._handle_mixer_event)
-        self._file_handler = FileHandler(Path(__file__).parent.parent / "resources")
+        self._file_handler = FileHandler(self._base_path)
         self._custom_event_handler = None
         self._sounds = {}
 
@@ -60,11 +61,14 @@ class CommandHandler:
     def _handle_command(self, cmd, entity_id, message):
         if cmd == "add":
             self._add_sound(entity_id, message)
+        elif cmd == "create":
+            self._add_video(entity_id, message)
         elif cmd == "play":
             self._play(entity_id)
         elif cmd == "pause":
             self._pause(entity_id)
-        elif cmd == "stop":
+        elif cmd == "stop" or cmd == "destroy":
+            # Audio uses command 'stop', Video uses command 'destroy'
             self._stop(entity_id)
         elif cmd == "set_volume":
             self._set_volume(entity_id, message)
@@ -72,12 +76,15 @@ class CommandHandler:
             self._toggle_mute(entity_id)
         elif cmd == "file":
             self._file_handler.write_file(Path(message["path"]), base64.b64decode(message["data"]))
+        elif cmd in ["hide", "show", "viewport", "layer"] and message.get("type") == "video":
+            # These are pure visual commands for video. Ignore.
+            pass
         else:
             print("Unhandled message: {}".format(message))
             return self._create_error_msg("Unsupported command")
 
     def _add_sound(self, entity_id, params):
-        path = params["asset"]
+        path = self._base_path / params["asset"]
         loops = params.get("loops", 1) - 1  # pygame uses zero indexing for this
         autostart = params.get("autostart", False)
         self._sounds[entity_id] = path
@@ -85,6 +92,16 @@ class CommandHandler:
         if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart):
             del self._sounds[entity_id]
             return self._create_error_msg("Unable to add sound. No more channels?")
+
+    def _add_video(self, entity_id, params):
+        path = self._base_path / params["asset"]
+        loops = params.get("looping", 1) - 1  # pygame uses zero indexing for this
+        autostart = params.get("autostart", False)
+        self._sounds[entity_id] = path
+
+        if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart):
+            del self._sounds[entity_id]
+            return self._create_error_msg("Unable to add video. No more channels?")
 
     def _play(self, entity_id):
         if entity_id not in self._sounds:

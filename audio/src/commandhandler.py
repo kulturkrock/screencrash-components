@@ -99,7 +99,8 @@ class CommandHandler:
         autostart = params.get("autostart", False)
         self._sounds[entity_id] = path
 
-        if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart):
+        # Don't send add event here. The screen component handles that.
+        if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart, send_add_event=False):
             del self._sounds[entity_id]
             return self._create_error_msg("Unable to add video. No more channels?")
 

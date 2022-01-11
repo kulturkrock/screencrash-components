@@ -4,9 +4,10 @@ const path = require('path');
 
 module.exports = class ImageHandler extends MediaHandler {
 
-    init(createMessage) {
-        super.init(createMessage);
-        this.uiWrapper.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${createMessage.asset}'>`;
+    init(createMessage, resourcesPath) {
+        super.init(createMessage, resourcesPath);
+        const imgPath = `${resourcesPath}/${createMessage.asset}`;
+        this.uiWrapper.innerHTML = `<img id = 'image-${this.id}' class = 'image-media' src = '${imgPath}'>`;
         this.name = path.parse(createMessage.asset).name;
         if (createMessage.displayName) {
             this.name = createMessage.displayName; // Override name

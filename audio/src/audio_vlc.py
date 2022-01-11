@@ -76,7 +76,7 @@ class AudioMixerVLC:
             del self._sounds[sound_id]
         self._emit("removed", sound_id, 0.0)
 
-    def add(self, sound_id, path, loops=0, autostart=False):
+    def add(self, sound_id, path, loops=0, autostart=False, send_add_event=True):
         instance = vlc.Instance("--vout=dummy")
         player = instance.media_player_new()
         player.set_mrl(path)
@@ -91,8 +91,9 @@ class AudioMixerVLC:
         player.play()
         if not autostart:
             player.pause()
-            
-        self._emit("added", sound_id)
+
+        if send_add_event:
+            self._emit("added", sound_id)
 
         return True
 

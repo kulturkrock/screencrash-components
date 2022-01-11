@@ -15,6 +15,10 @@ module.exports = class FileHandler {
         this.resourcesPath = resourcesPath;
     }
 
+    getResourcesPath() {
+        return this.resourcesPath;
+    }
+
     async writeFile(message) {
         const { path: filePath, data } = message;
         // Core will send POSIX paths, but we may be on Windows

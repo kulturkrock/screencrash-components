@@ -85,7 +85,8 @@ class CommandHandler:
 
     def _add_sound(self, entity_id, params):
         path = self._base_path / params["asset"]
-        loops = params.get("loops", 1) - 1  # pygame uses zero indexing for this
+        # loops = number of EXTRA times we play the clip (apart from the first) -> 0-indexed
+        loops = params.get("loops", 1) - 1
         autostart = params.get("autostart", False)
         self._sounds[entity_id] = path
 

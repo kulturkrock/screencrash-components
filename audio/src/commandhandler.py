@@ -1,11 +1,15 @@
 import base64
+import random
+import string
 from pathlib import Path
+from commandinfo import audio_commands, video_commands
 from file_handler import FileHandler
 from audio_vlc import AudioMixerVLC
 
 class CommandHandler:
 
     def __init__(self):
+        self._component_id = ''.join(random.choices(string.ascii_uppercase, k=16))
         self._mixer = AudioMixerVLC(self._handle_mixer_event)
         self._file_handler = FileHandler(Path(__file__).parent.parent / "resources")
         self._custom_event_handler = None
@@ -58,7 +62,9 @@ class CommandHandler:
             return self._create_error_msg(f"Failed to carry out command. {e}")
 
     def _handle_command(self, cmd, entity_id, message):
-        if cmd == "add":
+        if cmd == "req_component_info":
+            self._announce_component_info()
+        elif cmd == "add":
             self._add_sound(entity_id, message)
         elif cmd == "play":
             self._play(entity_id)
@@ -75,6 +81,17 @@ class CommandHandler:
         else:
             print("Unhandled message: {}".format(message))
             return self._create_error_msg("Unsupported command")
+
+    def _announce_component_info(self):
+        self._emit({
+            "messageType": "component_info",
+            "componentId": self._component_id,
+            "componentName": "audio",
+            "commands": {
+                "audio": audio_commands,
+                "video": video_commands
+            }
+        })
 
     def _add_sound(self, entity_id, params):
         path = params["asset"]

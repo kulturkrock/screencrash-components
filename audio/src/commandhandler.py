@@ -1,6 +1,7 @@
 import base64
 import random
 import string
+import os
 from pathlib import Path
 from file_handler import FileHandler
 from audio_vlc import AudioMixerVLC
@@ -8,7 +9,8 @@ from audio_vlc import AudioMixerVLC
 class CommandHandler:
 
     def __init__(self):
-        self._component_id = ''.join(random.choices(string.ascii_uppercase, k=16))
+        auto_generated_id = ''.join(random.choices(string.ascii_uppercase, k=16))
+        self._component_id = os.environ.get("SCREENCRASH_COMPONENT_ID", auto_generated_id)
         self._mixer = AudioMixerVLC(self._handle_mixer_event)
         self._file_handler = FileHandler(Path(__file__).parent.parent / "resources")
         self._custom_event_handler = None

@@ -6,7 +6,9 @@ const WebsiteHandler = require('./media/websitehandler');
 module.exports = class CommandRouter {
 
     constructor(dom, fileHandler) {
-        this.componentId = crypto.randomBytes(8).toString('hex');
+        this.componentId =
+          process.env.SCREENCRASH_COMPONENT_ID ||
+          crypto.randomBytes(8).toString('hex');
         this.dom = dom;
         this.fileHandler = fileHandler;
         this.handlers = {};

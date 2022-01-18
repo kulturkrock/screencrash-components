@@ -2,7 +2,6 @@ import base64
 import random
 import string
 from pathlib import Path
-from commandinfo import audio_commands, video_commands
 from file_handler import FileHandler
 from audio_vlc import AudioMixerVLC
 
@@ -87,10 +86,7 @@ class CommandHandler:
             "messageType": "component_info",
             "componentId": self._component_id,
             "componentName": "audio",
-            "commands": {
-                "audio": audio_commands,
-                "video": video_commands
-            }
+            "status": "online"
         })
 
     def _add_sound(self, entity_id, params):

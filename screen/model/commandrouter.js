@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const VideoHandler = require('./media/videohandler');
 const ImageHandler = require('./media/imagehandler');
 const WebsiteHandler = require('./media/websitehandler');
-const { imageCommands, videoCommands, webCommands } = require('./commandinfo');
 
 module.exports = class CommandRouter {
 
@@ -151,11 +150,7 @@ module.exports = class CommandRouter {
         return {
             componentId: this.componentId,
             componentName: 'screen',
-            commands: {
-                image: imageCommands,
-                video: videoCommands,
-                web: webCommands
-            }
+            status: 'online'
         };
     }
 

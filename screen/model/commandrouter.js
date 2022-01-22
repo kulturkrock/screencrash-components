@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const VideoHandler = require('./media/videohandler');
 const ImageHandler = require('./media/imagehandler');
 const WebsiteHandler = require('./media/websitehandler');
@@ -5,6 +6,9 @@ const WebsiteHandler = require('./media/websitehandler');
 module.exports = class CommandRouter {
 
     constructor(dom, fileHandler) {
+        this.componentId =
+          process.env.SCREENCRASH_COMPONENT_ID ||
+          crypto.randomBytes(8).toString('hex');
         this.dom = dom;
         this.fileHandler = fileHandler;
         this.handlers = {};
@@ -43,6 +47,12 @@ module.exports = class CommandRouter {
         // Handle creation and destruction of handlers, delegate all else.
         try {
             switch (msg.command) {
+                case 'req_component_info':
+                    this.sendFunction({
+                        messageType: 'component_info',
+                        ...this.getComponentInfo()
+                    });
+                    break;
                 case 'create':
                     this.createHandler(msg);
                     break;
@@ -136,6 +146,14 @@ module.exports = class CommandRouter {
         } else {
             this.reportError(`Trying to issue command for non-existant entity id ${entityId}`);
         }
+    }
+
+    getComponentInfo() {
+        return {
+            componentId: this.componentId,
+            componentName: 'screen',
+            status: 'online'
+        };
     }
 
     _regularUpdate() {

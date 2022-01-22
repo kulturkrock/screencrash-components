@@ -1,4 +1,7 @@
 import base64
+import random
+import string
+import os
 from pathlib import Path
 from file_handler import FileHandler
 from audio_vlc import AudioMixerVLC
@@ -6,6 +9,8 @@ from audio_vlc import AudioMixerVLC
 class CommandHandler:
 
     def __init__(self):
+        auto_generated_id = ''.join(random.choices(string.ascii_uppercase, k=16))
+        self._component_id = os.environ.get("SCREENCRASH_COMPONENT_ID", auto_generated_id)
         self._base_path = Path(__file__).parent.parent / "resources"
         self._mixer = AudioMixerVLC(self._handle_mixer_event)
         self._file_handler = FileHandler(self._base_path)
@@ -59,7 +64,9 @@ class CommandHandler:
             return self._create_error_msg(f"Failed to carry out command. {e}")
 
     def _handle_command(self, cmd, entity_id, message):
-        if cmd == "add":
+        if cmd == "req_component_info":
+            self._announce_component_info()
+        elif cmd == "add":
             self._add_sound(entity_id, message)
         elif cmd == "create":
             self._add_video(entity_id, message)
@@ -82,6 +89,14 @@ class CommandHandler:
         else:
             print("Unhandled message: {}".format(message))
             return self._create_error_msg("Unsupported command")
+
+    def _announce_component_info(self):
+        self._emit({
+            "messageType": "component_info",
+            "componentId": self._component_id,
+            "componentName": "audio",
+            "status": "online"
+        })
 
     def _add_sound(self, entity_id, params):
         path = self._base_path / params["asset"]

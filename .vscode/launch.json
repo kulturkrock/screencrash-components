@@ -22,7 +22,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/audio",
             "program": "${workspaceFolder}/audio/src/main.py",
-            "args" : ["--address", "localhost", "--port", "8001"],
+            "args" : [],
             "console": "integratedTerminal"
         }
     ]

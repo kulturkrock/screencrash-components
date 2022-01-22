@@ -80,7 +80,7 @@ module.exports = class CommandRouter {
         }
 
         this.handlers[entityId] = this.createHandlerFromType(entityId, msg.type);
-        this.handlers[entityId].init(msg);
+        this.handlers[entityId].init(msg, this.fileHandler.getResourcesPath());
         this.handlers[entityId].addEventListener('changed', this.onHandlerChanged.bind(this));
         this.handlers[entityId].addEventListener('destroyed', this.onHandlerDestroyed.bind(this));
         this.handlers[entityId].addEventListener('error-msg', (ev) => this.reportError(ev.detail));

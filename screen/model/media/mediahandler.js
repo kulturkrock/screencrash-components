@@ -10,7 +10,7 @@ module.exports = class MediaHandler extends EventTarget {
         this.uiWrapper = this._createMediaWrapper(dom);
     }
 
-    init(msg) {
+    init(msg, resourcesPath) {
         // It is acceptable to include viewport info already in create message.
         this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
 

@@ -158,3 +158,10 @@ class AudioMixerVLC:
         if player:
             player.audio_toggle_mute()
             self._emit("changed", sound_id)
+
+    # Position is given in seconds (may be float)
+    def seek(self, sound_id, position):
+        player = self._sounds.get(sound_id)
+        if player:
+            player.set_time(int(position*1000))
+            self._emit("changed", sound_id)

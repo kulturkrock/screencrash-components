@@ -61,6 +61,9 @@ module.exports = class VideoHandler extends MediaHandler {
             case 'pause':
                 this.pause();
                 break;
+            case 'seek':
+                this.seek(msg.position);
+                break;
             default:
                 return super.handleMessage(msg);
         }
@@ -117,6 +120,12 @@ module.exports = class VideoHandler extends MediaHandler {
     pause() {
         if (this.videoNode) {
             this.videoNode.pause();
+        }
+    }
+
+    seek(position) {
+        if (this.videoNode && position !== undefined && position !== null) {
+            this.videoNode.currentTime = position;
         }
     }
 

@@ -64,31 +64,36 @@ class CommandHandler:
             return self._create_error_msg(f"Failed to carry out command. {e}")
 
     def _handle_command(self, cmd, entity_id, message):
+        result = None
         if cmd == "req_component_info":
-            self._announce_component_info()
+            result = self._announce_component_info()
         elif cmd == "add":
-            self._add_sound(entity_id, message)
+            result = self._add_sound(entity_id, message)
         elif cmd == "create":
-            self._add_video(entity_id, message)
+            result = self._add_video(entity_id, message)
         elif cmd == "play":
-            self._play(entity_id)
+            result = self._play(entity_id)
         elif cmd == "pause":
-            self._pause(entity_id)
+            result = self._pause(entity_id)
         elif cmd == "stop" or cmd == "destroy":
             # Audio uses command 'stop', Video uses command 'destroy'
-            self._stop(entity_id)
+            result = self._stop(entity_id)
         elif cmd == "set_volume":
-            self._set_volume(entity_id, message)
+            result = self._set_volume(entity_id, message)
+        elif cmd == "seek":
+            result = self._seek(entity_id, message)
         elif cmd == "toggle_mute":
-            self._toggle_mute(entity_id)
+            result = self._toggle_mute(entity_id)
         elif cmd == "file":
-            self._file_handler.write_file(Path(message["path"]), base64.b64decode(message["data"]))
+            result = self._file_handler.write_file(Path(message["path"]), base64.b64decode(message["data"]))
         elif cmd in ["hide", "show", "viewport", "layer"] and message.get("type") == "video":
             # These are pure visual commands for video. Ignore.
             pass
         else:
             print("Unhandled message: {}".format(message))
-            return self._create_error_msg("Unsupported command")
+            result = self._create_error_msg("Unsupported command")
+
+        return result
 
     def _announce_component_info(self):
         self._emit({
@@ -108,6 +113,10 @@ class CommandHandler:
         if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart):
             del self._sounds[entity_id]
             return self._create_error_msg("Unable to add sound. No more channels?")
+        else:
+            start_position = params.get("start_at", 0)
+            if start_position != 0:
+                self._mixer.seek(entity_id, start_position)
 
     def _add_video(self, entity_id, params):
         path = self._base_path / params["asset"]
@@ -119,6 +128,10 @@ class CommandHandler:
         if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart, send_add_event=False):
             del self._sounds[entity_id]
             return self._create_error_msg("Unable to add video. No more channels?")
+        else:
+            start_position = params.get("start_at", 0)
+            if start_position != 0:
+                self._mixer.seek(entity_id, start_position)
 
     def _play(self, entity_id):
         if entity_id not in self._sounds:
@@ -149,3 +162,9 @@ class CommandHandler:
             self._mixer.set_volume_stereo(entity_id, left, right)
         else:
             self._mixer.set_volume(entity_id, params.get("volume", 50))
+
+    def _seek(self, entity_id, params):
+        if entity_id not in self._sounds:
+            return self._create_error_msg("Audio not found. Did you add it?")
+        position = params.get('position', 0)
+        self._mixer.seek(entity_id, position)

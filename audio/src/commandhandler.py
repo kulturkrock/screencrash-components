@@ -4,7 +4,7 @@ import string
 import os
 from pathlib import Path
 from file_handler import FileHandler
-from audio_vlc import AudioMixerVLC
+from audiomixer import AudioMixer
 
 class CommandHandler:
 
@@ -12,10 +12,9 @@ class CommandHandler:
         auto_generated_id = ''.join(random.choices(string.ascii_uppercase, k=16))
         self._component_id = os.environ.get("SCREENCRASH_COMPONENT_ID", auto_generated_id)
         self._base_path = Path(__file__).parent.parent / "resources"
-        self._mixer = AudioMixerVLC(self._handle_mixer_event)
+        self._mixer = AudioMixer(self._handle_mixer_event)
         self._file_handler = FileHandler(self._base_path)
         self._custom_event_handler = None
-        self._sounds = {}
 
     def set_event_handler(self, event_handler):
         self._custom_event_handler = event_handler
@@ -34,7 +33,8 @@ class CommandHandler:
             data = {
                 "messageType": f"effect-{event_type}",
                 "entityId": entity_id,
-                "name": Path(self._sounds.get(entity_id, "")).stem,
+                "name": Path(self._mixer.get_path(entity_id)).stem,
+                "effectType": sound_info["effect_type"],
                 "duration": sound_info["duration"],
                 "currentTime": sound_info["current_time"],
                 "lastSync": sound_info["last_sync"],
@@ -64,6 +64,7 @@ class CommandHandler:
             return self._create_error_msg(f"Failed to carry out command. {e}")
 
     def _handle_command(self, cmd, entity_id, message):
+        target_type = message.get("type")
         result = None
         if cmd == "req_component_info":
             result = self._announce_component_info()
@@ -84,14 +85,18 @@ class CommandHandler:
             result = self._seek(entity_id, message)
         elif cmd == "toggle_mute":
             result = self._toggle_mute(entity_id)
+        elif target_type == "audio" and cmd == "fade":
+            result = self._do_fade(entity_id, message)
+        elif target_type == "video" and cmd == "fade":
+            result = self._do_fade_video(entity_id, message)
         elif cmd == "file":
             result = self._file_handler.write_file(Path(message["path"]), base64.b64decode(message["data"]))
-        elif cmd in ["hide", "show", "viewport", "layer"] and message.get("type") == "video":
+        elif cmd in ["hide", "show", "viewport", "layer"] and target_type == "video":
             # These are pure visual commands for video. Ignore.
             pass
         else:
             print("Unhandled message: {}".format(message))
-            result = self._create_error_msg("Unsupported command")
+            result = self._create_error_msg(f"Unsupported command {cmd}")
 
         return result
 
@@ -108,54 +113,59 @@ class CommandHandler:
         # loops = number of EXTRA times we play the clip (apart from the first) -> 0-indexed
         loops = params.get("loops", 1) - 1
         autostart = params.get("autostart", False)
-        self._sounds[entity_id] = path
 
-        if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart):
-            del self._sounds[entity_id]
+        if not self._mixer.add("audio", entity_id, path=path, loops=loops, autostart=autostart):
             return self._create_error_msg("Unable to add sound. No more channels?")
         else:
             start_position = params.get("start_at", 0)
             if start_position != 0:
                 self._mixer.seek(entity_id, start_position)
+            fade_in = params.get("fadeIn")
+            if fade_in:
+                time = fade_in.get("time")
+                from_vol = fade_in.get("from")
+                to_vol = fade_in.get("to")
+                self._mixer.fade(entity_id, time, from_vol, to_vol, False)
+            fade_out = params.get("fadeOut", 0)
+            if fade_out != 0:
+                self._mixer.set_fade_out_time(entity_id, fade_out)
+
 
     def _add_video(self, entity_id, params):
         path = self._base_path / params["asset"]
         loops = params.get("looping", 1) - 1  # pygame uses zero indexing for this
         autostart = params.get("autostart", False)
-        self._sounds[entity_id] = path
 
         # Don't send add event here. The screen component handles that.
-        if not self._mixer.add(entity_id, path=path, loops=loops, autostart=autostart, send_add_event=False):
-            del self._sounds[entity_id]
+        if not self._mixer.add("video", entity_id, path=path, loops=loops, autostart=autostart, send_add_event=False):
             return self._create_error_msg("Unable to add video. No more channels?")
         else:
             start_position = params.get("start_at", 0)
             if start_position != 0:
                 self._mixer.seek(entity_id, start_position)
+            fade_in = params.get("fadeIn")
+            if fade_in:
+                time = fade_in.get("time")
+                from_vol = fade_in.get("from")
+                to_vol = fade_in.get("to")
+                self._mixer.fade(entity_id, time, from_vol, to_vol, False)
+            fade_out = params.get("fadeOut", 0)
+            if fade_out != 0:
+                self._mixer.set_fade_out_time(entity_id, fade_out)
 
     def _play(self, entity_id):
-        if entity_id not in self._sounds:
-            return self._create_error_msg("Audio not found. Did you add it?")
         self._mixer.play(entity_id)
 
     def _pause(self, entity_id):
-        if entity_id not in self._sounds:
-            return self._create_error_msg("Audio not found. Did you add it?")
         self._mixer.pause(entity_id)
 
     def _stop(self, entity_id):
-        if entity_id not in self._sounds:
-            return self._create_error_msg("Audio not found. Did you add it?")
         self._mixer.stop(entity_id)
 
     def _toggle_mute(self, entity_id):
-        if entity_id not in self._sounds:
-            return self._create_error_msg("Audio not found. Did you add it?")
         self._mixer.toggle_mute(entity_id)
 
     def _set_volume(self, entity_id, params):
-        if entity_id not in self._sounds:
-            return self._create_error_msg("Audio not found. Did you add it?")
         if "volumeLeft" in params or "volumeRight" in params:
             left = params.get("volumeLeft", 0)
             right = params.get("volumeRight", 0)
@@ -164,7 +174,17 @@ class CommandHandler:
             self._mixer.set_volume(entity_id, params.get("volume", 50))
 
     def _seek(self, entity_id, params):
-        if entity_id not in self._sounds:
-            return self._create_error_msg("Audio not found. Did you add it?")
         position = params.get('position', 0)
         self._mixer.seek(entity_id, position)
+
+    def _do_fade(self, entity_id, params):
+        time = params.get('time')
+        to_vol = params.get('target')
+        stop_on_done = params.get('stopOnDone', False)
+        self._mixer.fade(entity_id, time, None, to_vol, stop_on_done)
+
+    def _do_fade_video(self, entity_id, params):
+        time = params.get('time')
+        to_vol = params.get('target') * 100
+        stop_on_done = params.get('stopOnDone', False)
+        self._mixer.fade(entity_id, time, None, to_vol, stop_on_done)

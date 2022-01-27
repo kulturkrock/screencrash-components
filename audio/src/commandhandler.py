@@ -147,7 +147,9 @@ class CommandHandler:
             if fade_in:
                 time = fade_in.get("time")
                 from_vol = fade_in.get("from")
-                to_vol = fade_in.get("to")
+                if from_vol is not None:
+                    from_vol *= 100
+                to_vol = fade_in.get("to") * 100
                 self._mixer.fade(entity_id, time, from_vol, to_vol, False)
             fade_out = params.get("fadeOut", 0)
             if fade_out != 0:

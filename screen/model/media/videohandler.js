@@ -23,6 +23,10 @@ module.exports = class VideoHandler extends MediaHandler {
         this.nofLoops = (createMessage.looping ? createMessage.looping : 1) - 1;
         this.lastRecordedTime = -1;
 
+        this.fadeOutTime = createMessage.fadeOut || 0;
+        this.opacityBeforeFadeOut = 1.0;
+        this.fadeOutStarted = false;
+
         this.name = path.parse(createMessage.asset).name;
         if (createMessage.displayName) {
             this.name = createMessage.displayName; // Override name
@@ -126,6 +130,24 @@ module.exports = class VideoHandler extends MediaHandler {
     seek(position) {
         if (this.videoNode && position !== undefined && position !== null) {
             this.videoNode.currentTime = position;
+            this.resetFadeOut();
+        }
+    }
+
+    resetFadeOut() {
+        if (this.fadeOutStarted) {
+            this.stopFade();
+            this.fadeOutStarted = false;
+            this.setOpacity(this.opacityBeforeFadeOut);
+        }
+    }
+
+    // Override fade function in mediahandler.js
+    fade(stepDuration, stepsLeft, opacityPerStep, finalOpacity, onFadeDone) {
+        if (this.isPlaying()) {
+            super.fade(stepDuration, stepsLeft, opacityPerStep, finalOpacity, onFadeDone);
+        } else {
+            this.currentFadeTimer = setTimeout(this.fade.bind(this, stepDuration, stepsLeft, opacityPerStep, finalOpacity, onFadeDone), stepDuration);
         }
     }
 
@@ -150,13 +172,23 @@ module.exports = class VideoHandler extends MediaHandler {
     }
 
     onTimeUpdated(event) {
-        if (this.videoNode.currentTime < this.lastRecordedTime && this.videoNode.currentTime > 0) {
+        if (this.fadeOutTime > 0 && !this.fadeOutStarted) {
+            const timeLeft = (this.getDuration() - this.getCurrentTime()) + (this.nofLoops * this.getDuration());
+            if (timeLeft < this.fadeOutTime) {
+                this.opacityBeforeFadeOut = this.getOpacity();
+                this.fadeOutStarted = true;
+                this.doFade(this.fadeOutTime, null, 0.0, true);
+            }
+        }
+
+        const currentTime = this.videoNode.currentTime;
+        if (currentTime < this.lastRecordedTime && currentTime > 0) {
             // Time has changed backwards. Either we looped over and
             // started over or we time jumped. In both cases, we probably
             // want to notify the world about this change.
             this.emitEvent('changed', this.id);
         }
-        this.lastRecordedTime = this.videoNode.currentTime;
+        this.lastRecordedTime = currentTime;
     }
 
 };

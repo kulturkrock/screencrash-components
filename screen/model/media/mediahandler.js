@@ -7,6 +7,7 @@ module.exports = class MediaHandler extends EventTarget {
         super();
         this.id = id;
         this.isDestroyed = false;
+        this.currentFadeTimer = null;
         this.uiWrapper = this._createMediaWrapper(dom);
     }
 
@@ -24,6 +25,10 @@ module.exports = class MediaHandler extends EventTarget {
 
         if (typeof msg.layer === 'number') {
             this.setLayer(msg.layer);
+        }
+
+        if (msg.fadeIn) {
+            this.doFade(msg.fadeIn.time, msg.fadeIn.from, msg.fadeIn.to);
         }
     }
 
@@ -68,6 +73,8 @@ module.exports = class MediaHandler extends EventTarget {
                 this.setVisible(false);
                 break;
             case 'opacity':
+                // Fades manually change opacity. Avoid that.
+                this.stopFade();
                 this.setOpacity(msg.opacity);
                 break;
             case 'viewport':
@@ -75,6 +82,9 @@ module.exports = class MediaHandler extends EventTarget {
                 break;
             case 'layer':
                 this.setLayer(msg.layer);
+                break;
+            case 'fade':
+                this.doFade(msg.time, null, msg.target, msg.stopOnDone);
                 break;
             default:
                 console.log(`Warning: Unhandled command ${msg.command}`);
@@ -108,6 +118,9 @@ module.exports = class MediaHandler extends EventTarget {
     }
 
     getOpacity() {
+        if (this.uiWrapper.style.opacity === '') {
+            return 1.0;
+        }
         return this.uiWrapper.style.opacity;
     }
 
@@ -156,6 +169,37 @@ module.exports = class MediaHandler extends EventTarget {
 
     setLayer(layer) {
         this.uiWrapper.style.zIndex = layer;
+    }
+
+    doFade(time, fromOpacity, toOpacity, stopOnDone) {
+        const startOpacity = (fromOpacity == null ? this.getOpacity() : fromOpacity);
+        const stepDuration = 10;
+        const fadeTime = parseFloat(time) * 1000;
+        const steps = Math.round(fadeTime / stepDuration);
+        const opacityPerStep = (toOpacity - startOpacity) / steps;
+        const onFadeDone = (stopOnDone ? this.destroy.bind(this) : null);
+
+        this.setOpacity(startOpacity);
+        this.fade(stepDuration, steps, opacityPerStep, toOpacity, onFadeDone);
+    }
+
+    fade(stepDuration, stepsLeft, opacityPerStep, finalOpacity, onFadeDone) {
+        if (stepsLeft === 0) {
+            this.setOpacity(finalOpacity);
+            if (onFadeDone) {
+                onFadeDone();
+            }
+        } else {
+            this.setOpacity(parseFloat(this.getOpacity()) + opacityPerStep);
+            this.currentFadeTimer = setTimeout(this.fade.bind(this, stepDuration, stepsLeft - 1, opacityPerStep, finalOpacity, onFadeDone), stepDuration);
+        }
+    }
+
+    stopFade() {
+        if (this.currentFadeTimer !== null) {
+            clearTimeout(this.currentFadeTimer);
+            this.currentFadeTimer = null;
+        }
     }
 
     destroy() {

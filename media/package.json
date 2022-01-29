@@ -1,7 +1,7 @@
 {
-  "name": "screencrash-component-screen",
+  "name": "screencrash-component-media",
   "version": "1.0.0",
-  "description": "Screen component for screencrash",
+  "description": "Media component for screencrash",
   "main": "main.js",
   "scripts": {
     "start": "npx electron .",
@@ -12,7 +12,8 @@
   "keywords": [
     "screencrash",
     "kulturkrock",
-    "screen",
+    "media",
+    "audio",
     "video"
   ],
   "author": "Kulturkrock",

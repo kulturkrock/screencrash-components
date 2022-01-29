@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-          "name": "Run Screen Component",
+          "name": "Run Media Component",
           "type": "node",
           "request": "launch",
-          "cwd": "${workspaceFolder}/screen",
-          "runtimeExecutable": "${workspaceFolder}/screen/node_modules/.bin/electron",
+          "cwd": "${workspaceFolder}/media",
+          "runtimeExecutable": "${workspaceFolder}/media/node_modules/.bin/electron",
           "windows": {
-            "runtimeExecutable": "${workspaceFolder}/screen/node_modules/.bin/electron.cmd"
+            "runtimeExecutable": "${workspaceFolder}/media/node_modules/.bin/electron.cmd"
           },
           "args" : ["."],
           "outputCapture": "std"

@@ -1,9 +1,9 @@
-.PHONY: dev dev_screen dev_audio
+.PHONY: dev dev_media dev_audio
 
-dev_screen:
-	make -C screen dev
+dev_media:
+	make -C media dev
 
 dev_audio:
 	make -C audio dev
 
-dev: dev_screen dev_audio
+dev: dev_media dev_audio

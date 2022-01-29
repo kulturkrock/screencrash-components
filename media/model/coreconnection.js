@@ -69,7 +69,7 @@ module.exports = class CoreConnection {
     _getHeartbeatMessage() {
         return {
             messageType: 'heartbeat',
-            component: 'screen',
+            component: 'media',
             channel: 1
         };
     }

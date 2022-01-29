@@ -4,13 +4,18 @@ const path = require('path');
 
 module.exports = class AudioHandler extends MediaHandler {
 
+    constructor(id, dom) {
+        super(id, dom);
+        this.audioDisabled = (process.env.SCREENCRASH_NO_AUDIO === 'true');
+    }
+
     init(createMessage, resourcesPath) {
         super.init(createMessage, resourcesPath);
 
         const audioPath = `${resourcesPath}/${createMessage.asset}`;
         const autostart = createMessage.autostart === undefined || createMessage.autostart;
         this.uiWrapper.innerHTML = `
-            <audio id = "audio-${this.id}" class = "audio-media" src = "${audioPath}" ${autostart ? 'autoplay' : ''} />
+            <audio id = "audio-${this.id}" class = "audio-media" src = "${audioPath}" ${this.audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''} />
         `;
 
         this.audioNode = this.uiWrapper.getElementsByTagName('audio')[0];

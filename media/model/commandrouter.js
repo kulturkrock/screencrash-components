@@ -10,14 +10,25 @@ module.exports = class CommandRouter {
         this.componentId =
           process.env.SCREENCRASH_COMPONENT_ID ||
           crypto.randomBytes(8).toString('hex');
-        this.supportedTypes = null;
-        if (process.env.SCREENCRASH_SUPPORTED_TYPES) {
-            this.supportedTypes = process.env.SCREENCRASH_SUPPORTED_TYPES.split(' ');
-        }
+        this.supportedTypes =
+          process.env.SCREENCRASH_SUPPORTED_TYPES ||
+          this.getDefaultSupportedTypes();
         this.dom = dom;
         this.fileHandler = fileHandler;
         this.handlers = {};
         this.regularUpdateInterval = setInterval(this._regularUpdate.bind(this), 500);
+    }
+
+    getDefaultSupportedTypes() {
+        if (process.env.SCREENCRASH_NO_WINDOW === 'true' && process.env.SCREENCRASH_NO_AUDIO === 'true') {
+            return [];
+        } else if (process.env.SCREENCRASH_NO_WINDOW === 'true') {
+            return ['audio', 'video'];
+        } else if (process.env.SCREENCRASH_NO_AUDIO === 'true') {
+            return ['video', 'image', 'web'];
+        } else {
+            return ['audio', 'video', 'image', 'web'];
+        }
     }
 
     async initialMessage() {
@@ -49,7 +60,7 @@ module.exports = class CommandRouter {
         // Log occurrence
         // console.log('CommandHandler got message: ' + JSON.stringify(msg));
 
-        if (msg.type && this.supportedTypes && !(this.supportedTypes.includes(msg.type))) {
+        if (msg.type && !(this.supportedTypes.includes(msg.type))) {
             // We have disabled this media type on this instance of
             // this component. Ignore commands regarding it.
             console.log(`Supported types: ${this.supportedTypes} msg.type=${msg.type}`);

@@ -10,7 +10,7 @@ const commandRouter = new CommandRouter(document, fileHandler);
 const Connection = require('./model/coreconnection');
 // eslint-disable-next-line no-unused-vars
 const coreConnection = new Connection(
-    `ws://${process.env.CORE || 'localhost:3000'}/`,
+    `ws://${process.env.SCREENCRASH_CORE || 'localhost:3000'}/`,
     commandRouter.initialMessage.bind(commandRouter),
     commandRouter.handleMessage.bind(commandRouter)
 );

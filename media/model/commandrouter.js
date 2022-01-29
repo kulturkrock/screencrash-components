@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const VideoHandler = require('./media/videohandler');
 const ImageHandler = require('./media/imagehandler');
 const WebsiteHandler = require('./media/websitehandler');
+const AudioHandler = require('./media/audiohandler');
 
 module.exports = class CommandRouter {
 
@@ -9,6 +10,10 @@ module.exports = class CommandRouter {
         this.componentId =
           process.env.SCREENCRASH_COMPONENT_ID ||
           crypto.randomBytes(8).toString('hex');
+        this.supportedTypes = null;
+        if (process.env.SCREENCRASH_SUPPORTED_TYPES) {
+            this.supportedTypes = process.env.SCREENCRASH_SUPPORTED_TYPES.split(' ');
+        }
         this.dom = dom;
         this.fileHandler = fileHandler;
         this.handlers = {};
@@ -18,7 +23,7 @@ module.exports = class CommandRouter {
     async initialMessage() {
         return {
             type: 'announce',
-            client: 'screen',
+            client: 'media',
             channel: 1,
             files: await this.fileHandler.getHashes()
         };
@@ -43,6 +48,14 @@ module.exports = class CommandRouter {
     handleMessage(msg) {
         // Log occurrence
         // console.log('CommandHandler got message: ' + JSON.stringify(msg));
+
+        if (msg.type && this.supportedTypes && !(this.supportedTypes.includes(msg.type))) {
+            // We have disabled this media type on this instance of
+            // this component. Ignore commands regarding it.
+            console.log(`Supported types: ${this.supportedTypes} msg.type=${msg.type}`);
+            console.log(`Skipping message due to not supported type ${JSON.stringify(msg, null, 4)}`);
+            return;
+        }
 
         // Handle creation and destruction of handlers, delegate all else.
         try {
@@ -97,6 +110,7 @@ module.exports = class CommandRouter {
             case 'video': return new VideoHandler(entityId, this.dom);
             case 'image': return new ImageHandler(entityId, this.dom);
             case 'web': return new WebsiteHandler(entityId, this.dom);
+            case 'audio': return new AudioHandler(entityId, this.dom);
             default:
                 throw new Error(`Unsupported media type ${type}`);
         }
@@ -151,7 +165,7 @@ module.exports = class CommandRouter {
     getComponentInfo() {
         return {
             componentId: this.componentId,
-            componentName: 'screen',
+            componentName: 'media',
             status: 'online'
         };
     }

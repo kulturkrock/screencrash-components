@@ -16,6 +16,10 @@ function createWindow() {
     // and load the index.html of the app.
     mainWindow.loadFile('index.html');
 
+    if (process.env.SCREENCRASH_NO_WINDOW === 'true') {
+        mainWindow.hide();
+    }
+
     // Open the DevTools.
     // mainWindow.webContents.openDevTools();
 }

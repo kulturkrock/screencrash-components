@@ -1,8 +1,8 @@
 
-const MediaHandler = require('./mediahandler');
+const VisualHandler = require('./visualhandler');
 const path = require('path');
 
-module.exports = class ImageHandler extends MediaHandler {
+module.exports = class ImageHandler extends VisualHandler {
 
     init(createMessage, resourcesPath) {
         super.init(createMessage, resourcesPath);

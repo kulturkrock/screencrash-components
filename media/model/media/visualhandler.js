@@ -1,17 +1,13 @@
 
+const MediaHandler = require('./mediahandler');
+
 const { addClass, removeClass, hasClass } = require('../domutils');
 
-module.exports = class MediaHandler extends EventTarget {
-
-    constructor(id, dom) {
-        super();
-        this.id = id;
-        this.isDestroyed = false;
-        this.uiWrapper = this._createMediaWrapper(dom);
-    }
+module.exports = class VisualHandler extends MediaHandler {
 
     init(msg, resourcesPath) {
-        // It is acceptable to include viewport info already in create message.
+        super.init(msg, resourcesPath);
+
         this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
 
         if (msg.visible) {
@@ -27,26 +23,18 @@ module.exports = class MediaHandler extends EventTarget {
         }
     }
 
-    emitEvent(eventType, data) {
-        if (!this.isDestroyed) {
-            this.dispatchEvent(
-                new CustomEvent(eventType, { detail: data })
-            );
-        }
-    }
-
-    emitError(msg) {
-        this.emitEvent('error-msg', msg);
-    }
-
     getRegularUpdateState() {
+        const parentRegularState = super.getRegularUpdateState();
         return {
+            ...parentRegularState,
             effectType: 'unknown'
         };
     }
 
     getState() {
+        const parentState = super.getState();
         return {
+            ...parentState,
             effectType: 'unknown',
             visible: this.isVisible(),
             opacity: this.getOpacity(),
@@ -77,20 +65,11 @@ module.exports = class MediaHandler extends EventTarget {
                 this.setLayer(msg.layer);
                 break;
             default:
-                console.log(`Warning: Unhandled command ${msg.command}`);
-                return false;
+                return super.handleMessage(msg);
         }
 
         // If not handled we have already returned false
         return true;
-    }
-
-    _createMediaWrapper(dom) {
-        const element = dom.createElement('div');
-        element.id = 'wrapper-' + this.id;
-        element.className = 'media-wrapper hidden';
-        dom.body.appendChild(element);
-        return element;
     }
 
     isVisible() {
@@ -156,14 +135,6 @@ module.exports = class MediaHandler extends EventTarget {
 
     setLayer(layer) {
         this.uiWrapper.style.zIndex = layer;
-    }
-
-    destroy() {
-        if (!this.isDestroyed) {
-            this.uiWrapper.parentNode.removeChild(this.uiWrapper);
-            this.emitEvent('destroyed', this.id);
-            this.isDestroyed = true;
-        }
     }
 
 };

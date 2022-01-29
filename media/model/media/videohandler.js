@@ -1,8 +1,14 @@
 
-const MediaHandler = require('./mediahandler');
+const VisualHandler = require('./visualhandler');
 const path = require('path');
 
-module.exports = class VideoHandler extends MediaHandler {
+module.exports = class VideoHandler extends VisualHandler {
+
+    constructor(id, dom) {
+        super(id, dom);
+        this.audioDisabled = (process.env.SCREENCRASH_NO_AUDIO === 'true');
+        this.visualDisabled = (process.env.SCREENCRASH_NO_WINDOW === 'true');
+    }
 
     init(createMessage, resourcesPath) {
         super.init(createMessage, resourcesPath);
@@ -10,7 +16,7 @@ module.exports = class VideoHandler extends MediaHandler {
         const videoPath = `${resourcesPath}/${createMessage.asset}`;
         const autostart = createMessage.autostart === undefined || createMessage.autostart;
         this.uiWrapper.innerHTML = `
-            <video id = "video-${this.id}" class = "video-media" muted ${autostart ? 'autoplay' : ''}>
+            <video id = "video-${this.id}" class = "video-media" ${this.audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''}>
                 <source src="${videoPath}" type="video/mp4" />
             </video>
         `;
@@ -30,15 +36,18 @@ module.exports = class VideoHandler extends MediaHandler {
     }
 
     getRegularUpdateState() {
-        return {
+        const data = {
             ...super.getRegularUpdateState(),
-            effectType: 'video',
-            currentImage: this.getScreenshot()
+            effectType: 'video'
         };
+        if (!this.visualDisabled) {
+            data.currentImage = this.getScreenshot();
+        }
+        return data;
     }
 
     getState() {
-        return {
+        const data = {
             ...super.getState(),
             effectType: 'video',
             name: this.name,
@@ -46,11 +55,16 @@ module.exports = class VideoHandler extends MediaHandler {
             currentTime: this.getCurrentTime(),
             lastSync: Date.now(),
             playing: this.isPlaying(),
-            looping: this.isLooping(),
-            muted: this.isMuted(),
-            volume: this.getVolume(),
-            currentImage: this.getScreenshot()
+            looping: this.isLooping()
         };
+        if (!this.audioDisabled) {
+            data.muted = this.isMuted();
+            data.volume = this.getVolume();
+        }
+        if (!this.visualDisabled) {
+            data.currentImage = this.getScreenshot();
+        }
+        return data;
     }
 
     handleMessage(msg) {

@@ -15,6 +15,3 @@ const coreConnection = new Connection(
     commandRouter.handleMessage.bind(commandRouter)
 );
 commandRouter.init(coreConnection.send.bind(coreConnection));
-
-// TODO: Do we need to save a reference to the core connection? It seems to handle itself rather nicely already.
-//       I left it there for future potential features with replacing core address etc.

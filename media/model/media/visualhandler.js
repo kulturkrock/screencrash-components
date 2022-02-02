@@ -56,6 +56,8 @@ module.exports = class VisualHandler extends MediaHandler {
                 this.setVisible(false);
                 break;
             case 'opacity':
+                // Fades manually change opacity. Avoid that.
+                this.stopFade();
                 this.setOpacity(msg.opacity);
                 break;
             case 'viewport':
@@ -87,7 +89,10 @@ module.exports = class VisualHandler extends MediaHandler {
     }
 
     getOpacity() {
-        return this.uiWrapper.style.opacity;
+        if (this.uiWrapper.style.opacity === '') {
+            return 1.0;
+        }
+        return parseFloat(this.uiWrapper.style.opacity);
     }
 
     setOpacity(opacity) {
@@ -135,6 +140,31 @@ module.exports = class VisualHandler extends MediaHandler {
 
     setLayer(layer) {
         this.uiWrapper.style.zIndex = layer;
+    }
+
+    setupFade(from, to) {
+        super.setupFade(from, to);
+        const startOpacity = (from == null ? this.getOpacity() : from);
+        this.currentFade.startOpacity = startOpacity;
+        this.currentFade.currentOpacity = startOpacity;
+        this.currentFade.opacityPerStep = (to - startOpacity) / this.currentFade.stepsLeft;
+        this.currentFade.targetOpacity = to;
+        this.setOpacity(startOpacity);
+    }
+
+    runFadeStep(isLastStep) {
+        super.runFadeStep();
+        if (isLastStep) {
+            this.setOpacity(this.currentFade.targetOpacity);
+        } else {
+            this.currentFade.currentOpacity += this.currentFade.opacityPerStep;
+            this.setOpacity(this.currentFade.currentOpacity);
+        }
+    }
+
+    resetFade() {
+        super.resetFade();
+        this.setOpacity(this.currentFade.startOpacity);
     }
 
 };

@@ -137,13 +137,13 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     setMuted(muted) {
-        if (this.audioNode) {
+        if (this.audioNode && !this.audioDisabled) {
             this.audioNode.muted = muted;
         }
     }
 
     setVolume(volume) {
-        if (this.audioNode) {
+        if (this.audioNode && !this.audioDisabled) {
             this.audioNode.volume = volume / 100;
         }
     }

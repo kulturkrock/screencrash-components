@@ -163,13 +163,13 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     setMuted(muted) {
-        if (this.audioNode) {
-            this.audioNode.muted = muted;
+        if (this.videoNode && !this.audioDisabled) {
+            this.videoNode.muted = muted;
         }
     }
 
     setVolume(volume) {
-        if (this.videoNode) {
+        if (this.videoNode && !this.audioDisabled) {
             this.videoNode.volume = volume / 100;
         }
     }

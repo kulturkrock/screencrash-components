@@ -83,6 +83,9 @@ module.exports = class CommandRouter {
                 case 'destroy':
                     this.destroyHandler(msg.entityId);
                     break;
+                case 'reset':
+                    this.resetAll();
+                    break;
                 case 'file':
                     this.fileHandler.writeFile(msg);
                     break;
@@ -131,6 +134,12 @@ module.exports = class CommandRouter {
         if (entityId in this.handlers) {
             this.handlers[entityId].destroy();
             delete this.handlers[entityId];
+        }
+    }
+
+    resetAll() {
+        for (const entityId in this.handlers) {
+            this.destroyHandler(entityId);
         }
     }
 

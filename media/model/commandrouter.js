@@ -4,9 +4,10 @@ const ImageHandler = require('./media/imagehandler');
 const WebsiteHandler = require('./media/websitehandler');
 const AudioHandler = require('./media/audiohandler');
 
-module.exports = class CommandRouter {
+module.exports = class CommandRouter extends EventTarget {
 
     constructor(dom, fileHandler) {
+        super();
         this.componentId =
           process.env.SCREENCRASH_COMPONENT_ID ||
           crypto.randomBytes(8).toString('hex');
@@ -86,6 +87,9 @@ module.exports = class CommandRouter {
                 case 'reset':
                     this.resetAll();
                     break;
+                case 'restart':
+                    this.restart();
+                    break;
                 case 'file':
                     this.fileHandler.writeFile(msg);
                     break;
@@ -141,6 +145,10 @@ module.exports = class CommandRouter {
         for (const entityId in this.handlers) {
             this.destroyHandler(entityId);
         }
+    }
+
+    restart() {
+        this.dispatchEvent(new CustomEvent('relaunch'));
     }
 
     onHandlerDestroyed(event) {

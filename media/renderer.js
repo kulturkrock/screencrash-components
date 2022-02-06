@@ -1,3 +1,5 @@
+const { ipcRenderer } = require('electron');
+
 const path = require('path');
 // Init command handler
 const CommandRouter = require('./model/commandrouter');
@@ -15,3 +17,6 @@ const coreConnection = new Connection(
     commandRouter.handleMessage.bind(commandRouter)
 );
 commandRouter.init(coreConnection.send.bind(coreConnection));
+commandRouter.addEventListener('relaunch', () => {
+    ipcRenderer.send('relaunch-app');
+});

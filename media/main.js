@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 
 function createWindow() {
     // Create the browser window.
@@ -40,6 +40,11 @@ app.on('activate', function() {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+
+ipcMain.on('relaunch-app', (event, arg) => {
+    app.relaunch();
+    app.exit();
 });
 
 // In this file you can include the rest of your app's specific main process

@@ -44,16 +44,25 @@ module.exports = class CommandRouter {
         this.sendFunction = sendFunction;
     }
 
-    reportError(err) {
+    logMessage(data) {
         if (this.sendFunction) {
-            console.log(`Got some errors: ${err}`);
+            console.log(`Got ${data.level} message: ${data.message}`);
             this.sendFunction({
-                messageType: 'cmd-error',
-                msg: err
+                messageType: 'log-message',
+                level: data.level,
+                msg: data.message
             });
         } else {
-            console.log(`Err: ${err}`);
+            console.log(`${data.level}: ${data.message}`);
         }
+    }
+
+    reportWarning(msg) {
+        this.logMessage({ level: 'warning', message: msg });
+    }
+
+    reportError(msg) {
+        this.logMessage({ level: 'error', message: msg });
     }
 
     handleMessage(msg) {
@@ -99,7 +108,7 @@ module.exports = class CommandRouter {
         const entityId = msg.entityId;
 
         if (entityId in this.handlers) {
-            this.reportError(`A handler for entity id ${entityId} was overwritten by a new one`);
+            this.reportWarning(`A handler for entity id ${entityId} was overwritten by a new one`);
             this.destroyHandler(entityId);
         }
 
@@ -107,7 +116,7 @@ module.exports = class CommandRouter {
         this.handlers[entityId].init(msg, this.fileHandler.getResourcesPath());
         this.handlers[entityId].addEventListener('changed', this.onHandlerChanged.bind(this));
         this.handlers[entityId].addEventListener('destroyed', this.onHandlerDestroyed.bind(this));
-        this.handlers[entityId].addEventListener('error-msg', (ev) => this.reportError(ev.detail));
+        this.handlers[entityId].addEventListener('log-msg', (ev) => this.logMessage(ev.detail));
 
         this.sendFunction({
             messageType: 'effect-added',
@@ -155,7 +164,7 @@ module.exports = class CommandRouter {
                 ...this.handlers[entityId].getState()
             });
         } else {
-            this.reportError('Got update events on untracked effect');
+            this.reportWarning('Got update events on untracked effect');
         }
     }
 
@@ -169,7 +178,7 @@ module.exports = class CommandRouter {
                 });
             }
         } else {
-            this.reportError(`Trying to issue command for non-existant entity id ${entityId}`);
+            this.reportWarning(`Trying to issue command for non-existant entity id ${entityId}`);
         }
     }
 

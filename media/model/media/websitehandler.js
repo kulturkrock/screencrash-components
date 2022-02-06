@@ -59,7 +59,7 @@ module.exports = class WebsiteHandler extends VisualHandler {
             const newPage = `${this.asset}${operationChar}screencrash_web_component_refresh_arg=${randomString}`;
             el.src = newPage;
         } else {
-            console.log('Failed to refresh webpage');
+            this.emitWarning('Failed to refresh webpage');
         }
     }
 

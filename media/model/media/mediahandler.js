@@ -30,8 +30,12 @@ module.exports = class MediaHandler extends EventTarget {
         }
     }
 
+    emitWarning(msg) {
+        this.emitEvent('log-msg', { level: 'warning', message: msg });
+    }
+
     emitError(msg) {
-        this.emitEvent('error-msg', msg);
+        this.emitEvent('log-msg', { level: 'error', message: msg });
     }
 
     init(msg, resourcesPath) {
@@ -64,7 +68,7 @@ module.exports = class MediaHandler extends EventTarget {
                 this.startFade(msg.time, null, msg.target, msg.stopOnDone);
                 break;
             default:
-                console.log(`Warning: Unhandled command ${msg.command}`);
+                this.emitWarning(`Unhandled command ${msg.command}`);
                 return false;
         }
 

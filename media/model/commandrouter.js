@@ -9,11 +9,11 @@ module.exports = class CommandRouter extends EventTarget {
     constructor(dom, fileHandler) {
         super();
         this.componentId =
-          process.env.SCREENCRASH_COMPONENT_ID ||
-          crypto.randomBytes(8).toString('hex');
+            process.env.SCREENCRASH_COMPONENT_ID ||
+            crypto.randomBytes(8).toString('hex');
         this.supportedTypes =
-          process.env.SCREENCRASH_SUPPORTED_TYPES ||
-          this.getDefaultSupportedTypes();
+            process.env.SCREENCRASH_SUPPORTED_TYPES ||
+            this.getDefaultSupportedTypes();
         this.dom = dom;
         this.fileHandler = fileHandler;
         this.handlers = {};
@@ -36,13 +36,16 @@ module.exports = class CommandRouter extends EventTarget {
         return {
             type: 'announce',
             client: 'media',
-            channel: 1,
-            files: await this.fileHandler.getHashes()
+            channel: 1
         };
     }
 
     init(sendFunction) {
         this.sendFunction = sendFunction;
+    }
+
+    async reportChecksums() {
+        this.sendFunction({ messageType: 'file_checksums', files: await this.fileHandler.getHashes() });
     }
 
     logMessage(data) {
@@ -101,6 +104,9 @@ module.exports = class CommandRouter extends EventTarget {
                     break;
                 case 'file':
                     this.fileHandler.writeFile(msg);
+                    break;
+                case 'report_checksums':
+                    this.reportChecksums();
                     break;
                 default:
                     this.sendMessageToHandler(msg.entityId, msg);

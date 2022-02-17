@@ -41,7 +41,7 @@
 <div class = "item-area">
 	{{#each availableItems as |item index|}}
 		<div class = "available-item {{ternary (eq item.cost 0) 'short' ''}}">
-			<div class = "available-item-icon {{ternary item.added ' added' ''}}" style = "background-image: url('/imgs/items/{{ item.name }}.png');" onclick = "toggleItem(this, '{{ item.name }}');"></div>
+			<div class = "available-item-icon {{ternary item.added ' added' ''}}" style = "background-image: url('/inventory-data/items/{{ item.name }}.png');" onclick = "toggleItem(this, '{{ item.name }}');"></div>
 			<div class = "available-item-name">{{ item.description }}</div>
 			<div class = "available-item-cost">{{ item.cost }} guld</div>
 			<div class = "available-item-controls">

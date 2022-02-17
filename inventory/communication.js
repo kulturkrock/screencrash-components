@@ -17,6 +17,7 @@ class CommunicationModel {
 	}
 
 	_setupCoreSocket() {
+		// this.inventory.loadStaticDataFrom("public/inventory-data/inventory-data.json");
 	}
 
 	_sendItemsUpdate() {

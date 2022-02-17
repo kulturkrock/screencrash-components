@@ -17,7 +17,7 @@ body{
 	left: 0px;
 	width: 960px;
 	height: 720px;
-	background:url('/imgs/inventory-background.jpg');
+	background:url('/inventory-data/theme/inventory-background.jpg');
 }
 .inventory-header{
 	font-size:32px;
@@ -45,13 +45,13 @@ body{
 	width: 130px;
 	height: 130px;
 	margin: 2px 17px;
-	background-image: url("/imgs/itemborder.png");
+	background-image: url("/inventory-data/theme/inventory-item-border-odd.png");
 	background-repeat:no-repeat;
 	background-size:100% 100%;
 	flex: 0 0 auto;
 }
 .inventory-item:nth-child(2n+1){
-	background-image: url("/imgs/itemborder2.png");
+	background-image: url("/inventory-data/theme/inventory-item-border-even.png");
 }
 .inventory-item-icon {
 	width:100%;
@@ -61,7 +61,7 @@ body{
 	background-repeat:no-repeat;
 }
 .inventory-item:first-child .inventory-item-icon{
-	background-image:url('/imgs/guld.png');
+	background-image:url('/inventory-data/theme/inventory-money-icon.png');
 	background-size:52% 52%;
 	background-position:50% 60%;
 }

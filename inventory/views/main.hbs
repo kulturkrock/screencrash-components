@@ -45,11 +45,11 @@
 
 <!-- Only used for templating -->
 <div class = "achievement">
-	<img class = "achievement-icon" src = "/imgs/achievements/twoflowers.jpg">
+	<img class = "achievement-icon" src = "/inventory-data/achievements/achievement.jpg">
 	<div class = "achievement-info">
 		<div class = "achievement-header">Bedrift upplåst!</div>
-		<div class = "achievement-name">Röda och vita rosen</div>
-		<div class = "achievement-desc">Ha två blommor</div>
+		<div class = "achievement-name">TBD</div>
+		<div class = "achievement-desc">TBD</div>
 	</div>
 </div>
 
@@ -108,7 +108,7 @@
 		for (let i = 0; i<allItems.length-1; i++) {
 			let url = "";
 			if (i < items.length){
-				url = "url('/imgs/items/" + items[i] + ".png')";
+				url = "url('/inventory-data/items/" + items[i] + ".png')";
 			}
 			
 			allItems[i+1].firstChild.style.backgroundImage = url;
@@ -129,7 +129,7 @@
 		console.log('Got an achievement!');
 		console.log(achievement.title + ': ' + achievement.desc);
 		let achievementNode = document.getElementsByClassName("achievement")[0].cloneNode(true);
-		achievementNode.getElementsByClassName("achievement-icon")[0].setAttribute("src", "/imgs/achievements/" + achievement.name + ".jpg");
+		achievementNode.getElementsByClassName("achievement-icon")[0].setAttribute("src", "/inventory-data/achievements/" + achievement.name + ".jpg");
 		achievementNode.getElementsByClassName("achievement-name")[0].innerHTML = achievement.title;
 		achievementNode.getElementsByClassName("achievement-desc")[0].innerHTML = achievement.desc;
 		achievementNode.style.display = "flex";

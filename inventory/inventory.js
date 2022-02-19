@@ -2,17 +2,19 @@
 import { readFileSync } from "fs";
 
 class InventoryEvent extends Event {
+
     constructor(type, data) {
         super(type);
         this.data = data;
     }
+
 }
 
 class Inventory extends EventTarget {
 
     constructor() {
         super();
-        this.staticData = {items: [], achievements: {}};
+        this.staticData = { items: [], achievements: {} };
         this.money = 0;
         this.items = [];
         this.achievements = [];
@@ -20,16 +22,16 @@ class Inventory extends EventTarget {
     }
 
     _add(item) {
-        if(item) {
+        if (item) {
             this.items.push(item);
             this.dispatchEvent(new InventoryEvent("added_item", item));
         }
     }
 
     _remove(item) {
-		let index = this.items.indexOf(item);
-		if (index >= 0){
-			this.items.splice(index, 1);
+        const index = this.items.indexOf(item);
+        if (index >= 0) {
+            this.items.splice(index, 1);
             this.dispatchEvent(new InventoryEvent("removed_item", item));
             return true;
         }
@@ -37,12 +39,12 @@ class Inventory extends EventTarget {
     }
 
     _findItem(itemName) {
-        const matchingItems = this.staticData.items.filter(item => item.name == itemName);
+        const matchingItems = this.staticData.items.filter(item => item.name === itemName);
         return matchingItems.length > 0 ? matchingItems[0] : undefined;
     }
 
     _countItem(itemName) {
-        return this.items.filter(item => item == itemName).length;
+        return this.items.filter(item => item === itemName).length;
     }
 
     loadStaticDataFrom(resourceFile) {
@@ -50,7 +52,7 @@ class Inventory extends EventTarget {
     }
 
     reset() {
-        this.staticData = {items: [], achievements: {}};
+        this.staticData = { items: [], achievements: {} };
         this.items = [];
         this.achievements = [];
         this.money = 0;
@@ -115,45 +117,44 @@ class Inventory extends EventTarget {
             this.checkAchievements();
         }
     }
-	
-	enableAchievement(name){
+
+    enableAchievement(name) {
         const achievement = this.getAchievement(name);
         if (achievement && !this.achievements.includes(name)) {
             this.achievements.push(name);
             this.dispatchEvent(new InventoryEvent("achievement", achievement));
         }
-	};
+    };
 
     checkAchievements() {
-		for (const achievementName in this.staticData.achievements) {
+        for (const achievementName in this.staticData.achievements) {
             const achievement = this.getAchievement(achievementName);
-			if (!this.achievements.includes(achievementName) && this.checkAchievement(achievement)) {
+            if (!this.achievements.includes(achievementName) && this.checkAchievement(achievement)) {
                 this.dispatchEvent(new InventoryEvent("achievement_reached", achievementName));
-			}
-		}
+            }
+        }
     }
 
-	checkAchievement(achievement) {
-		if (!achievement.requirements) {
+    checkAchievement(achievement) {
+        if (!achievement.requirements) {
             // Some achievements can only be manually triggered
-			return false;
-		}
+            return false;
+        }
 
-		for (const req of achievement.requirements) {
-			if (req.items && req.amount) {
-				if (req.items.reduce((sum, x) => sum + this._countItem(x), 0) >= req.amount) {
-					return true;
-				}
-			}
-			else if (req.item && req.amount) {
-				if (this._countItem(req.item) >= req.amount) {
-					return true;
-				}
-			}
-		}
+        for (const req of achievement.requirements) {
+            if (req.items && req.amount) {
+                if (req.items.reduce((sum, x) => sum + this._countItem(x), 0) >= req.amount) {
+                    return true;
+                }
+            } else if (req.item && req.amount) {
+                if (this._countItem(req.item) >= req.amount) {
+                    return true;
+                }
+            }
+        }
 
-		return false;
-	};
+        return false;
+    };
 
 }
 

@@ -9,12 +9,21 @@
     "express": "^4.17.3",
     "express-handlebars": "^6.0.2",
     "express-ws": "^5.0.2",
-    "nodemon": "^2.0.2",
     "ws": "^7.4.6"
+  },
+  "devDependencies": {
+    "eslint": "^7.5.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "nodemon": "^2.0.15"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --ignore ./public/ ./index.js"
+    "dev": "nodemon --ignore ./public/ ./index.js",
+    "lint": "node_modules/.bin/eslint ."
   },
   "keywords": [
     "kulturkrock",

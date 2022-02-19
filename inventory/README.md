@@ -3,7 +3,7 @@ Inventory component for screencrash, with support for items and achievements. Cu
 Run component to handle backend calls and then add a web view with the `media`-component to visualize the result, or visit webpage at http://localhost:4218.
 Manual changes can be done through screencrash commands or via the update subpage (http://localhost:4218/update).
 
-Available items and achivements can be added/removed/edited in the file `res/static_data.json`.
+Available items and achivements can be set up with configuration files. See more in [Required resources](#required-resources)
 
 ## Requirements
 NodeJS v10.0+ . Make is nice but not required.
@@ -53,12 +53,7 @@ For more examples see `example_data/inventory-data/inventory-data.json`.
 ## Running the server
 
 ### Running with make
-The following commands start the different modules:
-
-| Command                     | Outcome                                                             |
-| --------------------------- | ------------------------------------------------------------------- |
-| make dev                    | Run inventory server on port 4218                                   |
-| make -C transparent_web dev | Run electron window displaying the webpage on http://localhost:4218 |
+The following commands start the component `make dev`
 
 ### Running with npm
 ```

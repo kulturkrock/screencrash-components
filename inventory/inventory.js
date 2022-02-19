@@ -50,7 +50,10 @@ class Inventory extends EventTarget {
     }
 
     reset() {
-        console.log(`Reset not implemented`);
+        this.staticData = {items: [], achievements: {}};
+        this.items = [];
+        this.achievements = [];
+        this.money = 0;
     }
 
     getCurrentMoney() {

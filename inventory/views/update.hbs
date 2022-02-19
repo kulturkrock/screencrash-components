@@ -157,7 +157,7 @@
 	}
 	
 	function addItem(itemElement, itemId){
-		sendCommand({ cmd: "add", item: itemId });
+		sendCommand({ command: "add", item: itemId });
 		
 		if (!itemElement.className.includes("added")) {
 			itemElement.className += " added";
@@ -165,24 +165,24 @@
 	}
 	
 	function removeItem(itemElement, itemName){
-		sendCommand({ cmd: "remove", item: itemName });
+		sendCommand({ command: "remove", item: itemName });
 		itemElement.className = itemElement.className.replace(" added", "");
 	}
 	
 	function buyItem(itemElement, itemName){
-		sendCommand({ cmd: "buy", item: itemName });
+		sendCommand({ command: "buy", item: itemName });
 		if (!itemElement.className.includes("added")) {
 			itemElement.className += " added";
 		}
 	}
 	
 	function sellItem(itemElement, itemName){
-		sendCommand({ cmd: "sell", item: itemName });
+		sendCommand({ command: "sell", item: itemName });
 		itemElement.className = itemElement.className.replace(" added", "");
 	}
 	
 	function changeGold(amount){
-		sendCommand({ cmd: "change_money", amount: amount });
+		sendCommand({ command: "change_money", amount: amount });
 	}
 	
 	function getItemName(){
@@ -190,15 +190,15 @@
 	}
 	
 	function addItemManually(itemId){
-		sendCommand({ cmd: "add", item: itemId });
+		sendCommand({ command: "add", item: itemId });
 	}
 	
 	function removeItemManually(itemId){
-		sendCommand({ cmd: "remove", item: itemId });
+		sendCommand({ command: "remove", item: itemId });
 	}
 	
 	function activateAchievement(achievementCodename){
-		sendCommand({ cmd: "enable_achievement", achievement: achievementCodename });
+		sendCommand({ command: "enable_achievement", achievement: achievementCodename });
 	}
 	
 	function fixGoldChange(){

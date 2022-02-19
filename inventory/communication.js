@@ -17,6 +17,12 @@ class CommunicationModel {
 		this.inventory = inventory;
 		this._setupInventoryEvents();
 		this._setupCoreSocket();
+
+		try {
+			this.reloadInventory();
+		} catch(e) {
+			console.log(`Failed to load static data`);
+		}
 	}
 
 	_setupInventoryEvents() {
@@ -186,6 +192,7 @@ class CommunicationModel {
 					break;
 				case "setup":
 				case "reset":
+					this.inventory.reset();
 					this.reloadInventory();
 					break;
 				case "restart":
@@ -200,7 +207,6 @@ class CommunicationModel {
 	}
 
 	reloadInventory() {
-		this.inventory.reset();
 		this.inventory.loadStaticDataFrom("public/inventory-data/inventory-data.json");
 	}
 

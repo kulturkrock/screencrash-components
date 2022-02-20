@@ -61,8 +61,11 @@ class Inventory extends EventTarget {
     reset() {
         this.staticData = { items: [], achievements: {} };
         this.items = [];
+        this.dispatchEvent(new InventoryEvent("items"));
         this.achievements = [];
+        this.dispatchEvent(new InventoryEvent("achievements"));
         this.money = 0;
+        this.dispatchEvent(new InventoryEvent("changed_money", this.money));
     }
 
     getCurrentMoney() {

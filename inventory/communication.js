@@ -89,6 +89,10 @@ class CommunicationModel {
 
     _sendInitialState(sock) {
         sock.send(JSON.stringify({
+            messageType: "configuration",
+            data: this.inventory.getStaticData()
+        }));
+        sock.send(JSON.stringify({
             messageType: "items",
             items: this.inventory.getCurrentItems()
         }));
@@ -109,6 +113,7 @@ class CommunicationModel {
             componentName: "inventory",
             status: "online"
         });
+        this._sendInitialState(this.coreConnection);
     }
 
     async _getHashFor(filePath) {
@@ -207,6 +212,10 @@ class CommunicationModel {
 
     reloadInventory() {
         this.inventory.loadStaticDataFrom("public/inventory-data/inventory-data.json");
+        this._sendToAll({
+            messageType: "configuration",
+            data: this.inventory.getStaticData()
+        });
     }
 
     async restart() {

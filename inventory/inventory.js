@@ -51,6 +51,13 @@ class Inventory extends EventTarget {
         this.staticData = JSON.parse(readFileSync(resourceFile));
     }
 
+    getStaticData() {
+        return {
+            items: this.staticData.items || [],
+            achievements: Object.keys(this.staticData.achievements || {}).map(this.getAchievement)
+        };
+    }
+
     reset() {
         this.staticData = { items: [], achievements: {} };
         this.items = [];
@@ -71,7 +78,11 @@ class Inventory extends EventTarget {
     }
 
     getAchievement(name) {
-        return { ...this.staticData.achievements[name], name: name };
+        return {
+            ...this.staticData.achievements[name],
+            name: name,
+            reuse: this.staticData.achievements[name].reuse === true
+        };
     }
 
     getAvailableAchievements() {
@@ -120,8 +131,11 @@ class Inventory extends EventTarget {
 
     enableAchievement(name) {
         const achievement = this.getAchievement(name);
-        if (achievement && !this.achievements.includes(name)) {
-            this.achievements.push(name);
+        const hasBeenActivated = this.achievements.includes(name);
+        if (achievement && (!hasBeenActivated || achievement.reuse)) {
+            if (!hasBeenActivated) {
+                this.achievements.push(name);
+            }
             this.dispatchEvent(new InventoryEvent("achievement", achievement));
         }
     };
@@ -129,8 +143,8 @@ class Inventory extends EventTarget {
     checkAchievements() {
         for (const achievementName in this.staticData.achievements) {
             const achievement = this.getAchievement(achievementName);
-            if (!this.achievements.includes(achievementName) && this.checkAchievement(achievement)) {
-                this.dispatchEvent(new InventoryEvent("achievement_reached", achievementName));
+            if ((!this.achievements.includes(achievementName) || achievement.reuse) && this.checkAchievement(achievement)) {
+                this.dispatchEvent(new InventoryEvent("achievement_reached", achievement));
             }
         }
     }

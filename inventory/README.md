@@ -6,7 +6,7 @@ Manual changes can be done through screencrash commands or via the update subpag
 Available items and achivements can be set up with configuration files. See more in [Required resources](#required-resources)
 
 ## Requirements
-NodeJS v10.0+ . Make is nice but not required.
+NodeJS v15.0+ . Make is nice but not required.
 
 ## Required resources
 To customize the inventory to your liking a number of resources (mainly images) are needed. The root folder for all of these files are `public/inventory-data`:

@@ -1,6 +1,16 @@
 const { ipcRenderer } = require('electron');
 
 const path = require('path');
+
+// Workaround: On some computers the audio system may go to sleep and
+// take a short while to activate. This can cut off the beginning of
+// clips, so we "play" a looping silent sound to prevent this.
+if (process.env.SCREENCRASH_NO_AUDIO !== 'true') {
+    const audioDiv = document.createElement('div');
+    audioDiv.innerHTML = '<audio class="audio-media hidden" src="silence.wav" autoplay loop></audio>';
+    document.body.appendChild(audioDiv);
+}
+
 // Init command handler
 const CommandRouter = require('./model/commandrouter');
 const FileHandler = require('./model/fileHandler');

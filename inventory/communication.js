@@ -27,8 +27,10 @@ class CommunicationModel {
     _setupInventoryEvents() {
         this.inventory.addEventListener("added_item", this._sendItemsUpdate.bind(this));
         this.inventory.addEventListener("removed_item", this._sendItemsUpdate.bind(this));
+        this.inventory.addEventListener("items", this._sendItemsUpdate.bind(this));
         this.inventory.addEventListener("changed_money", this._sendMoneyUpdate.bind(this));
         this.inventory.addEventListener("achievement", this._sendAchievementUpdate.bind(this));
+        this.inventory.addEventListener("achievements", this._sendAchievementsUpdate.bind(this));
         this.inventory.addEventListener("achievement_reached", this._sendAchievementReachedUpdate.bind(this));
     }
 
@@ -63,10 +65,14 @@ class CommunicationModel {
         this._sendToAll({ messageType: "money", money: this.inventory.getCurrentMoney() });
     }
 
+    _sendAchievementsUpdate() {
+        this._sendToAll({ messageType: "achievements", achievements: this.inventory.getCurrentAchievements() });
+    }
+
     _sendAchievementUpdate(event) {
         const achievement = event.data;
         this._sendToAll({ messageType: "achievement", achievement: achievement });
-        this._sendToAll({ messageType: "achievements", achievements: this.inventory.getCurrentAchievements() });
+        this._sendAchievementsUpdate();
     }
 
     _sendAchievementReachedUpdate(event) {
@@ -89,6 +95,10 @@ class CommunicationModel {
 
     _sendInitialState(sock) {
         sock.send(JSON.stringify({
+            messageType: "configuration",
+            data: this.inventory.getStaticData()
+        }));
+        sock.send(JSON.stringify({
             messageType: "items",
             items: this.inventory.getCurrentItems()
         }));
@@ -109,6 +119,7 @@ class CommunicationModel {
             componentName: "inventory",
             status: "online"
         });
+        this._sendInitialState(this.coreConnection);
     }
 
     async _getHashFor(filePath) {
@@ -207,6 +218,10 @@ class CommunicationModel {
 
     reloadInventory() {
         this.inventory.loadStaticDataFrom("public/inventory-data/inventory-data.json");
+        this._sendToAll({
+            messageType: "configuration",
+            data: this.inventory.getStaticData()
+        });
     }
 
     async restart() {

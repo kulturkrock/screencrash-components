@@ -20,6 +20,7 @@ Run the project with `node_modules/electron/dist/electron.exe .` from the media 
 | SCREENCRASH_NO_WINDOW                | Set to `true` to disable visual components and hide display window. Affects SUPPORTED_TYPES if it has not been explicitly set. | false                     |
 | SCREENCRASH_NO_AUDIO                 | Set to `true` to disable audio components. Affects SUPPORTED_TYPES if it has not been explicitly set.                          | false                     |
 | SCREENCRASH_DISABLE_AUDIO_WORKAROUND | Set to `true` to disable playing a silent sound on loop, which is a workaround needed on some computers.                       | false                     |
+| SCREENCRASH_FULLSCREEN               | Set to `true` to enable fullscreen mode. This cannot be used together with `SCREENCRASH_NO_WINDOW`.                            | false                     |
 
 ## Visual Studio Code configuration
 

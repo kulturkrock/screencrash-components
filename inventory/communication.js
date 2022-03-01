@@ -62,7 +62,11 @@ class CommunicationModel {
     }
 
     _sendMoneyUpdate() {
-        this._sendToAll({ messageType: "money", money: this.inventory.getCurrentMoney() });
+        this._sendToAll({
+            messageType: "money",
+            money: this.inventory.getCurrentMoney(),
+            currency: this.inventory.getCurrency()
+        });
     }
 
     _sendAchievementsUpdate() {
@@ -104,7 +108,8 @@ class CommunicationModel {
         }));
         sock.send(JSON.stringify({
             messageType: "money",
-            money: this.inventory.getCurrentMoney()
+            money: this.inventory.getCurrentMoney(),
+            currency: this.inventory.getCurrency()
         }));
         sock.send(JSON.stringify({
             messageType: "achievements",
@@ -195,6 +200,9 @@ class CommunicationModel {
                     break;
                 case "change_money":
                     this.inventory.changeMoney(message.amount);
+                    break;
+                case "set_currency":
+                    this.inventory.setCurrency(message.currency);
                     break;
                 case "enable_achievement":
                     this.inventory.enableAchievement(message.achievement);

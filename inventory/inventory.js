@@ -16,6 +16,7 @@ class Inventory extends EventTarget {
         super();
         this.staticData = { items: [], achievements: {} };
         this.money = 0;
+        this.currency = "money";
         this.items = [];
         this.achievements = [];
         this.getAchievement = this.getAchievement.bind(this);
@@ -49,6 +50,7 @@ class Inventory extends EventTarget {
 
     loadStaticDataFrom(resourceFile) {
         this.staticData = JSON.parse(readFileSync(resourceFile));
+        this.setCurrency(this.staticData.currency);
     }
 
     getStaticData() {
@@ -70,6 +72,10 @@ class Inventory extends EventTarget {
 
     getCurrentMoney() {
         return this.money;
+    }
+
+    getCurrency() {
+        return this.currency;
     }
 
     getAvailableItems() {
@@ -129,6 +135,12 @@ class Inventory extends EventTarget {
         const item = this._findItem(itemName);
         if (this._remove(item.name)) {
             this.checkAchievements();
+        }
+    }
+
+    setCurrency(currency) {
+        if (currency !== undefined && currency !== null) {
+            this.currency = currency;
         }
     }
 

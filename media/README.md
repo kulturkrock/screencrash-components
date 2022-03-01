@@ -1,29 +1,35 @@
 # Media component
 
 ## Installing
+
 This project is built with Electron.
 
-Run ```npm install``` from the media folder to install all dependencies.
+Run `npm install` from the media folder to install all dependencies.
 
 ## Running
-Run the project with ```node_modules/electron/dist/electron.exe .``` from the media folder (use backslashes if running in Windows CMD).
+
+Run the project with `node_modules/electron/dist/electron.exe .` from the media folder (use backslashes if running in Windows CMD).
 
 ### Available environment variables
-| Name of variable            | Function                                                                                                                                     | Default value             |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| SCREENCRASH_COMPONENT_ID    | Set name of component to be displayed in UI and logs                                                                                         | Random string of 16 chars |
-| SCREENCRASH_CORE            | Set address to core                                                                                                                          | localhost:8001            |
-| SCREENCRASH_SUPPORTED_TYPES | Space separated string of what types should be active. Available are: audio, video, image, web                                               | All available types       |
-| SCREENCRASH_NO_WINDOW       | Set to `true` to disable visual components and hide display window. Affects `SCREENCRASH_SUPPORTED_TYPES` if it has not been explicitly set. | false                     |
-| SCREENCRASH_NO_AUDIO        | Set to `true` to disable audio components. Affects `SCREENCRASH_SUPPORTED_TYPES` if it has not been explicitly set.                          | false                     |
-| SCREENCRASH_FULLSCREEN      | Set to `true` to enable fullscreen mode. This cannot be used together with `SCREENCRASH_NO_WINDOW`.                                          | false                     |
+
+| Name of variable                     | Function                                                                                                                       | Default value             |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| SCREENCRASH_COMPONENT_ID             | Set name of component to be displayed in UI and logs                                                                           | Random string of 16 chars |
+| SCREENCRASH_CORE                     | Set address to core                                                                                                            | localhost:8001            |
+| SCREENCRASH_SUPPORTED_TYPES          | Space separated string of what types should be active. Available are: audio, video, image, web                                 | All available types       |
+| SCREENCRASH_NO_WINDOW                | Set to `true` to disable visual components and hide display window. Affects SUPPORTED_TYPES if it has not been explicitly set. | false                     |
+| SCREENCRASH_NO_AUDIO                 | Set to `true` to disable audio components. Affects SUPPORTED_TYPES if it has not been explicitly set.                          | false                     |
+| SCREENCRASH_DISABLE_AUDIO_WORKAROUND | Set to `true` to disable playing a silent sound on loop, which is a workaround needed on some computers.                       | false                     |
+| SCREENCRASH_FULLSCREEN               | Set to `true` to enable fullscreen mode. This cannot be used together with `SCREENCRASH_NO_WINDOW`.                            | false                     |
 
 ## Visual Studio Code configuration
+
 There is a run configuration available for the media module. Just open the entire repo folder in Visual studio code and
 it should automagically know how to run etc. Yay!
 
 ## Using dummy-core to trigger actions
-To run dummy-core, cd to the dummy_core directory and issue the command ```npm start```.
+
+To run dummy-core, cd to the dummy_core directory and issue the command `npm start`.
 Once in the dummy_core prompt, here are some examples that will trigger actions in the media component
 
 ```

@@ -193,7 +193,15 @@ class CommunicationModel {
                     this.inventory.sell(message.item);
                     break;
                 case "add":
-                    this.inventory.add(message.item);
+                    if (message.item) {
+                        this.inventory.add(message.item);
+                    } else if (message.items) {
+                        message.items.split(",").forEach((item) => {
+                            this.inventory.add(item);
+                        });
+                    } else {
+                        console.log("No input item given to add command");
+                    }
                     break;
                 case "remove":
                     this.inventory.remove(message.item);

@@ -32,6 +32,7 @@ class CommunicationModel {
         this.inventory.addEventListener("achievement", this._sendAchievementUpdate.bind(this));
         this.inventory.addEventListener("achievements", this._sendAchievementsUpdate.bind(this));
         this.inventory.addEventListener("achievement_reached", this._sendAchievementReachedUpdate.bind(this));
+        this.inventory.addEventListener("items_visibility", this._sendItemsVisibilityUpdate.bind(this));
     }
 
     _setupCoreSocket() {
@@ -59,6 +60,10 @@ class CommunicationModel {
 
     _sendItemsUpdate() {
         this._sendToAll({ messageType: "items", items: this.inventory.getCurrentItems() });
+    }
+
+    _sendItemsVisibilityUpdate() {
+        this._sendToAll({ messageType: "items_visibility", visible: this.inventory.getItemsSectionVisibility() });
     }
 
     _sendMoneyUpdate() {
@@ -101,6 +106,10 @@ class CommunicationModel {
         sock.send(JSON.stringify({
             messageType: "configuration",
             data: this.inventory.getStaticData()
+        }));
+        sock.send(JSON.stringify({
+            messageType: "items_visibility",
+            visible: this.inventory.getItemsSectionVisibility()
         }));
         sock.send(JSON.stringify({
             messageType: "items",
@@ -208,6 +217,10 @@ class CommunicationModel {
                     break;
                 case "change_money":
                     this.inventory.changeMoney(message.amount);
+                    break;
+                case "set_items_visibility":
+                    // Use to hide items section and only show achievements section
+                    this.inventory.setItemsSectionVisibility(message.visible);
                     break;
                 case "set_currency":
                     this.inventory.setCurrency(message.currency);

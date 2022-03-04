@@ -13,7 +13,7 @@ function createWindow() {
             nodeIntegration: true
         },
         frame: false,
-        transparent: false // Toggle to remove white bg
+        transparent: process.env.SCREENCRASH_TRANSPARENT_WINDOW === 'true'
     });
 
     // and load the index.html of the app.

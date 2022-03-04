@@ -82,6 +82,9 @@
 			case "money":
 				updateMoney(msg.money);
 				break;
+			case "items_visibility":
+				updateInventoryVisibility(msg.visible);
+				break;
 			default:
 				console.log(`Ignoring unhandled message type ${msg.messageType}`);
 		}
@@ -138,5 +141,9 @@
 		container.appendChild(achievementNode);
 		achievementNode.className += " visible";
 		setTimeout(function(){ container.removeChild(achievementNode); }, 10000);
+	}
+
+	function updateInventoryVisibility(visible) {
+		document.getElementById("inventory").style.display = (visible ? "block" : "none");
 	}
 </script>

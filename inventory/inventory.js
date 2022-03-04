@@ -17,6 +17,7 @@ class Inventory extends EventTarget {
         this.staticData = { items: [], achievements: {} };
         this.money = 0;
         this.currency = "money";
+        this.itemsSectionVisibility = true;
         this.items = [];
         this.achievements = [];
         this.getAchievement = this.getAchievement.bind(this);
@@ -76,6 +77,10 @@ class Inventory extends EventTarget {
 
     getCurrency() {
         return this.currency;
+    }
+
+    getItemsSectionVisibility() {
+        return this.itemsSectionVisibility;
     }
 
     getAvailableItems() {
@@ -141,6 +146,13 @@ class Inventory extends EventTarget {
     setCurrency(currency) {
         if (currency !== undefined && currency !== null) {
             this.currency = currency;
+        }
+    }
+
+    setItemsSectionVisibility(visible) {
+        if (visible !== undefined && visible !== null && this.itemsSectionVisibility !== visible) {
+            this.itemsSectionVisibility = visible;
+            this.dispatchEvent(new InventoryEvent("items_visibility", visible));
         }
     }
 

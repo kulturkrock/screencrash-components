@@ -172,6 +172,11 @@ module.exports = class AudioHandler extends MediaHandler {
         }
     }
 
+    stopOnFadeDone() {
+        this.emitEvent('event', { event: 'audio_ended', entityId: this.id });
+        super.stopOnFadeDone();
+    }
+
     isFadeStepAllowed() {
         return super.isFadeStepAllowed() && this.isPlaying();
     }
@@ -188,6 +193,7 @@ module.exports = class AudioHandler extends MediaHandler {
 
     onEnded() {
         if (this.nofLoops === 0) {
+            this.emitEvent('event', { event: 'audio_ended', entityId: this.id });
             this.destroy();
         } else {
             if (this.nofLoops > 0) {

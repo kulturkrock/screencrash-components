@@ -25,11 +25,23 @@ class CommunicationModel {
     }
 
     _setupInventoryEvents() {
-        this.inventory.addEventListener("added_item", this._sendItemsUpdate.bind(this));
-        this.inventory.addEventListener("removed_item", this._sendItemsUpdate.bind(this));
+        this.inventory.addEventListener("added_item", (event) => {
+            this._sendUpdateEvent("item_added", { item: event.data });
+            this._sendItemsUpdate();
+        });
+        this.inventory.addEventListener("removed_item", (event) => {
+            this._sendUpdateEvent("item_removed", { item: event.data });
+            this._sendItemsUpdate();
+        });
         this.inventory.addEventListener("items", this._sendItemsUpdate.bind(this));
-        this.inventory.addEventListener("changed_money", this._sendMoneyUpdate.bind(this));
-        this.inventory.addEventListener("achievement", this._sendAchievementUpdate.bind(this));
+        this.inventory.addEventListener("changed_money", (event) => {
+            this._sendUpdateEvent("money_updated", { money: event.data });
+            this._sendMoneyUpdate();
+        });
+        this.inventory.addEventListener("achievement", (event) => {
+            this._sendUpdateEvent("achievement_enabled", { achievement: event.data });
+            this._sendAchievementUpdate(event);
+        });
         this.inventory.addEventListener("achievements", this._sendAchievementsUpdate.bind(this));
         this.inventory.addEventListener("achievement_reached", this._sendAchievementReachedUpdate.bind(this));
         this.inventory.addEventListener("items_visibility", this._sendItemsVisibilityUpdate.bind(this));
@@ -56,6 +68,14 @@ class CommunicationModel {
         this.coreConnection.onerror = () => {
             console.log("Error on core socket. Closing connection...");
         };
+    }
+
+    _sendUpdateEvent(eventName, eventData) {
+        this._sendToAll({
+            messageType: "event",
+            event: eventName,
+            params: eventData
+        });
     }
 
     _sendItemsUpdate() {

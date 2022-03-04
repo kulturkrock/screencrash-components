@@ -78,10 +78,14 @@ module.exports = class MediaHandler extends EventTarget {
     startFade(time, from, to, stopOnDone) {
         const fadeTime = parseFloat(time) * 1000;
         this.currentFade.stepsLeft = Math.round(fadeTime / this.currentFade.stepDuration);
-        this.currentFade.onFadeDone = (stopOnDone ? this.destroy.bind(this) : null);
+        this.currentFade.onFadeDone = (stopOnDone ? this.stopOnFadeDone.bind(this) : null);
 
         this.setupFade(from, to);
         this.fade();
+    }
+
+    stopOnFadeDone() {
+        this.destroy();
     }
 
     fade() {

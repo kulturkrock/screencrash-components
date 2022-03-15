@@ -10,6 +10,7 @@ function createWindow() {
         height: 600,
         fullscreen: useFullscreen,
         webPreferences: {
+            contextIsolation: false,
             nodeIntegration: true
         },
         frame: false,

@@ -1,10 +1,10 @@
 
-module.exports = class CoreConnection {
+module.exports = class CoreConnection extends EventTarget {
 
-    constructor(address, getAnnounceMessage = null, onMessageCallback = null, reconnect = true, reconnectWait = 3000) {
+    constructor(address, getAnnounceMessage = null, reconnect = true, reconnectWait = 3000) {
+        super();
         this.address = address;
         this.getAnnounceMessage = getAnnounceMessage;
-        this.onMessageCallback = onMessageCallback;
         this.reconnect = reconnect;
         this.reconnectWait = reconnectWait;
         this.socket = null;
@@ -37,16 +37,13 @@ module.exports = class CoreConnection {
         if (this.getAnnounceMessage) {
             this.send(await this.getAnnounceMessage());
         }
+        this.dispatchEvent(new CustomEvent('connected'));
     }
 
     onMessage(event) {
         const msg = JSON.parse(event.data);
         if (msg != null) {
-            if (this.onMessageCallback) {
-                this.onMessageCallback(msg);
-            } else {
-                console.log(`Got unhandled message: ${msg}`);
-            }
+            this.dispatchEvent(new CustomEvent('command', { detail: msg }));
         } else {
             console.log('Warning: Got badly formatted message');
         }
@@ -64,6 +61,7 @@ module.exports = class CoreConnection {
         } else {
             console.log('Disconnected from server');
         }
+        this.dispatchEvent(new CustomEvent('disconnected'));
     }
 
     _getHeartbeatMessage() {

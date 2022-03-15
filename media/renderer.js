@@ -20,13 +20,23 @@ const commandRouter = new CommandRouter(document, fileHandler);
 
 // Init connection to core
 const Connection = require('./model/coreconnection');
-// eslint-disable-next-line no-unused-vars
+const addr = `${process.env.SCREENCRASH_CORE || 'localhost:8001'}`;
 const coreConnection = new Connection(
-    `ws://${process.env.SCREENCRASH_CORE || 'localhost:8001'}/`,
-    commandRouter.initialMessage.bind(commandRouter),
-    commandRouter.handleMessage.bind(commandRouter)
+    `ws://${addr}/`,
+    commandRouter.initialMessage.bind(commandRouter)
 );
+coreConnection.addEventListener('command', (event) => {
+    commandRouter.handleMessage(event.detail);
+});
+coreConnection.addEventListener('connected', () => {
+    document.getElementById('disconnected').style.display = 'none';
+});
+coreConnection.addEventListener('disconnected', () => {
+    document.getElementById('disconnected').style.display = 'block';
+});
 commandRouter.init(coreConnection.send.bind(coreConnection));
 commandRouter.addEventListener('relaunch', () => {
     ipcRenderer.send('relaunch-app');
 });
+
+document.getElementById('disconnected_addr').innerHTML = addr;

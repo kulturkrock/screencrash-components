@@ -14,7 +14,7 @@ function createWindow() {
             nodeIntegration: true
         },
         frame: false,
-        transparent: process.env.SCREENCRASH_TRANSPARENT_WINDOW === 'true'
+        backgroundColor: process.env.SCREENCRASH_WINDOW_BACKGROUND || '#000000'
     });
 
     // and load the index.html of the app.

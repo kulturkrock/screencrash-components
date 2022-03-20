@@ -10,10 +10,11 @@ function createWindow() {
         height: 600,
         fullscreen: useFullscreen,
         webPreferences: {
+            contextIsolation: false,
             nodeIntegration: true
         },
         frame: false,
-        transparent: false // Toggle to remove white bg
+        backgroundColor: process.env.SCREENCRASH_WINDOW_BACKGROUND || '#000000'
     });
 
     // and load the index.html of the app.

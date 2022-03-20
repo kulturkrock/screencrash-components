@@ -22,6 +22,7 @@ Run the project with `node_modules/electron/dist/electron.exe .` from the media 
 | SCREENCRASH_DISABLE_AUDIO_WORKAROUND | Set to `true` to disable playing a silent sound on loop, which is a workaround needed on some computers.                       | false                     |
 | SCREENCRASH_FULLSCREEN               | Set to `true` to enable fullscreen mode. This cannot be used together with `SCREENCRASH_NO_WINDOW`.                            | false                     |
 | SCREENCRASH_DISCONNECT_INFO          | Set to `false` to hide DISCONNECTED screen no matter if device is connected or not (good for live mode)                        | true                      |
+| SCREENCRASH_WINDOW_BACKGROUND        | Set background color for window, in hex format. Default black. This cannot be used together with `SCREENCRASH_NO_WINDOW`.      | #000000                   |
 
 ## Visual Studio Code configuration
 

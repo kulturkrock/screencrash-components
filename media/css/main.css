@@ -14,12 +14,13 @@ body{
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    font-size: 160px;
+    font-size: 16vh;
     color: lightgray;
     text-align: center;
 }
-#disconnected_info {
-    font-size: 60px;
+.disconnected_info {
+    margin-top: 2vh;
+    font-size: 6vh;
 }
 
 div.media-wrapper{

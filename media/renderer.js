@@ -1,6 +1,7 @@
 const { ipcRenderer } = require('electron');
 
 const path = require('path');
+const os = require('os');
 
 // Workaround: On some computers the audio system may go to sleep and
 // take a short while to activate. This can cut off the beginning of
@@ -28,15 +29,36 @@ const coreConnection = new Connection(
 coreConnection.addEventListener('command', (event) => {
     commandRouter.handleMessage(event.detail);
 });
-coreConnection.addEventListener('connected', () => {
+
+const showDisconnectInfo = process.env.SCREENCRASH_DISCONNECT_INFO !== 'false';
+if (showDisconnectInfo) {
+    coreConnection.addEventListener('connected', () => {
+        document.getElementById('disconnected').style.display = 'none';
+    });
+    coreConnection.addEventListener('disconnected', () => {
+        document.getElementById('disconnected').style.display = 'block';
+    });
+
+    document.getElementById('disconnected_addr').innerHTML = addr;
+    document.getElementById('disconnected_local_addr').innerHTML = getLocalIP();
+} else {
     document.getElementById('disconnected').style.display = 'none';
-});
-coreConnection.addEventListener('disconnected', () => {
-    document.getElementById('disconnected').style.display = 'block';
-});
+}
+
 commandRouter.init(coreConnection.send.bind(coreConnection));
 commandRouter.addEventListener('relaunch', () => {
     ipcRenderer.send('relaunch-app');
 });
 
-document.getElementById('disconnected_addr').innerHTML = addr;
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const interfaceName in interfaces) {
+        for (const address of interfaces[interfaceName]) {
+            if (address.family === 'IPv4' && !address.internal) {
+                return address.address;
+            }
+        }
+    }
+
+    return '[Unknown]';
+}

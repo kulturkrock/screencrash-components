@@ -1,6 +1,7 @@
 const { ipcRenderer } = require('electron');
 
 const path = require('path');
+const os = require('os');
 
 // Workaround: On some computers the audio system may go to sleep and
 // take a short while to activate. This can cut off the beginning of
@@ -20,13 +21,44 @@ const commandRouter = new CommandRouter(document, fileHandler);
 
 // Init connection to core
 const Connection = require('./model/coreconnection');
-// eslint-disable-next-line no-unused-vars
+const addr = `${process.env.SCREENCRASH_CORE || 'localhost:8001'}`;
 const coreConnection = new Connection(
-    `ws://${process.env.SCREENCRASH_CORE || 'localhost:8001'}/`,
-    commandRouter.initialMessage.bind(commandRouter),
-    commandRouter.handleMessage.bind(commandRouter)
+    `ws://${addr}/`,
+    commandRouter.initialMessage.bind(commandRouter)
 );
+coreConnection.addEventListener('command', (event) => {
+    commandRouter.handleMessage(event.detail);
+});
+
+const showDisconnectInfo = process.env.SCREENCRASH_DISCONNECT_INFO !== 'false';
+if (showDisconnectInfo) {
+    coreConnection.addEventListener('connected', () => {
+        document.getElementById('disconnected').style.display = 'none';
+    });
+    coreConnection.addEventListener('disconnected', () => {
+        document.getElementById('disconnected').style.display = 'block';
+    });
+
+    document.getElementById('disconnected_addr').innerHTML = addr;
+    document.getElementById('disconnected_local_addr').innerHTML = getLocalIP();
+} else {
+    document.getElementById('disconnected').style.display = 'none';
+}
+
 commandRouter.init(coreConnection.send.bind(coreConnection));
 commandRouter.addEventListener('relaunch', () => {
     ipcRenderer.send('relaunch-app');
 });
+
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const interfaceName in interfaces) {
+        for (const address of interfaces[interfaceName]) {
+            if (address.family === 'IPv4' && !address.internal) {
+                return address.address;
+            }
+        }
+    }
+
+    return '[Unknown]';
+}

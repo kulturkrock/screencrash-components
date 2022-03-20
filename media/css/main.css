@@ -7,6 +7,22 @@ body{
     visibility:hidden;
 }
 
+#disconnected {
+    background:rgba(255, 255, 255, 0);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    font-size: 16vh;
+    color: lightgray;
+    text-align: center;
+}
+.disconnected_info {
+    margin-top: 2vh;
+    font-size: 6vh;
+}
+
 div.media-wrapper{
     position:fixed;
     top:0px;

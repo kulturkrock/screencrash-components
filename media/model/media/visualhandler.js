@@ -1,9 +1,15 @@
 
 const MediaHandler = require('./mediahandler');
+const $ = require('jquery');
 
 const { addClass, removeClass, hasClass } = require('../domutils');
 
 module.exports = class VisualHandler extends MediaHandler {
+
+    constructor(id, dom) {
+        super(id, dom);
+        this.fadeStartOpacity = 0;
+    }
 
     init(msg, resourcesPath) {
         super.init(msg, resourcesPath);
@@ -142,29 +148,19 @@ module.exports = class VisualHandler extends MediaHandler {
         this.uiWrapper.style.zIndex = layer;
     }
 
-    setupFade(from, to) {
-        super.setupFade(from, to);
-        const startOpacity = (from == null ? this.getOpacity() : from);
-        this.currentFade.startOpacity = startOpacity;
-        this.currentFade.currentOpacity = startOpacity;
-        this.currentFade.opacityPerStep = (to - startOpacity) / this.currentFade.stepsLeft;
-        this.currentFade.targetOpacity = to;
-        this.setOpacity(startOpacity);
+    setupFade(fadeTime, from, to, onFadeDone) {
+        super.setupFade(fadeTime, from, to, () => {});
+        this.fadeStartOpacity = (from == null ? this.getOpacity() : from);
+        this.setOpacity(this.fadeStartOpacity);
+        $(this.uiWrapper).animate({ opacity: to }, fadeTime, onFadeDone);
     }
 
-    runFadeStep(isLastStep) {
-        super.runFadeStep();
-        if (isLastStep) {
-            this.setOpacity(this.currentFade.targetOpacity);
-        } else {
-            this.currentFade.currentOpacity += this.currentFade.opacityPerStep;
-            this.setOpacity(this.currentFade.currentOpacity);
+    stopFade(requireReset) {
+        super.stopFade(requireReset);
+        $(this.uiWrapper).stop(true, true);
+        if (requireReset) {
+            this.setOpacity(this.fadeStartOpacity);
         }
-    }
-
-    resetFade() {
-        super.resetFade();
-        this.setOpacity(this.currentFade.startOpacity);
     }
 
 };

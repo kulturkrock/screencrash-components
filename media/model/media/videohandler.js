@@ -1,6 +1,7 @@
 
 const VisualHandler = require('./visualhandler');
 const path = require('path');
+const $ = require('jquery');
 
 module.exports = class VideoHandler extends VisualHandler {
 
@@ -34,6 +35,7 @@ module.exports = class VideoHandler extends VisualHandler {
         // Variables to keep track of fade out on end
         this.finalFadeOutTime = createMessage.fadeOut || 0;
         this.finalFadeOutStarted = false;
+        this.fadeStartVolume = 0;
 
         // Set name of this handler
         this.name = path.parse(createMessage.asset).name;
@@ -174,38 +176,23 @@ module.exports = class VideoHandler extends VisualHandler {
         }
     }
 
-    setupFade(from, to) {
-        super.setupFade(from, to);
-        if (!this.audioDisabled) {
+    setupFade(fadeTime, from, to, onFadeDone) {
+        if (this.audioDisabled) {
+            super.setupFade(fadeTime, from, to, onFadeDone);
+        } else {
+            super.setupFade(fadeTime, from, to, () => {});
             const startVolume = (from == null ? this.getVolume() : from * 100);
-            this.currentFade.startVolume = startVolume;
-            this.currentFade.currentVolume = startVolume;
-            this.currentFade.volumePerStep = (to * 100 - startVolume) / this.currentFade.stepsLeft;
-            this.currentFade.targetVolume = to * 100;
+            this.fadeStartVolume = startVolume;
             this.setVolume(startVolume);
+            $(this.videoNode).animate({ volume: to }, fadeTime, onFadeDone);
         }
     }
 
-    runFadeStep(isLastStep) {
-        super.runFadeStep(isLastStep);
-        if (!this.audioDisabled) {
-            if (isLastStep) {
-                this.setVolume(this.currentFade.targetVolume);
-            } else {
-                this.currentFade.currentVolume += this.currentFade.volumePerStep;
-                this.setVolume(Math.round(this.currentFade.currentVolume));
-            }
-        }
-    }
-
-    isFadeStepAllowed() {
-        return super.isFadeStepAllowed() && this.isPlaying();
-    }
-
-    resetFade() {
-        super.resetFade();
-        if (!this.audioDisabled) {
-            this.setVolume(this.currentFade.startVolume);
+    stopFade(requireReset) {
+        super.stopFade(requireReset);
+        $(this.videoNode).stop(true, true);
+        if (requireReset && !this.audioDisabled) {
+            this.setVolume(this.fadeStartVolume);
         }
     }
 

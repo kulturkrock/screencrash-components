@@ -1,6 +1,7 @@
 
 const MediaHandler = require('./mediahandler');
 const path = require('path');
+const $ = require('jquery');
 
 module.exports = class AudioHandler extends MediaHandler {
 
@@ -29,6 +30,7 @@ module.exports = class AudioHandler extends MediaHandler {
         this.lastRecordedTime = -1;
 
         // Variables to keep track of fade out on end
+        this.fadeStartVolume = 0;
         this.finalFadeOutTime = createMessage.fadeOut || 0;
         this.finalFadeOutStarted = false;
 
@@ -148,37 +150,20 @@ module.exports = class AudioHandler extends MediaHandler {
         }
     }
 
-    setupFade(from, to) {
-        super.setupFade(from, to);
-        if (!this.audioDisabled) {
-            const startVolume = (from == null ? this.getVolume() : from);
-            this.currentFade.startVolume = startVolume;
-            this.currentFade.currentVolume = startVolume;
-            this.currentFade.volumePerStep = (to - startVolume) / this.currentFade.stepsLeft;
-            this.currentFade.targetVolume = to;
-            this.setVolume(startVolume);
+    setupFade(fadeTime, from, to, onFadeDone) {
+        super.setupFade(fadeTime, from, to, () => {});
+        const startVolume = (from == null ? this.getVolume() : from * 100);
+        this.fadeStartVolume = startVolume;
+        this.setVolume(startVolume);
+        $(this.audioNode).animate({ volume: to }, fadeTime, onFadeDone);
+    }
+
+    stopFade(requireReset) {
+        super.stopFade(requireReset);
+        $(this.audioNode).stop(true, true);
+        if (requireReset) {
+            this.setVolume(this.fadeStartVolume);
         }
-    }
-
-    runFadeStep(isLastStep) {
-        super.runFadeStep(isLastStep);
-        if (!this.audioDisabled) {
-            if (isLastStep) {
-                this.setVolume(this.currentFade.targetVolume);
-            } else {
-                this.currentFade.currentVolume += this.currentFade.volumePerStep;
-                this.setVolume(Math.round(this.currentFade.currentVolume));
-            }
-        }
-    }
-
-    isFadeStepAllowed() {
-        return super.isFadeStepAllowed() && this.isPlaying();
-    }
-
-    resetFade() {
-        super.resetFade();
-        this.setVolume(this.currentFade.startVolume);
     }
 
     onError() {

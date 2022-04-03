@@ -25,13 +25,15 @@ class Inventory extends EventTarget {
 
     _add(item) {
         if (item) {
-            this.items.push(item);
+            this.items.push(item.name);
             this.dispatchEvent(new InventoryEvent("added_item", item));
+        } else {
+            console.log("Tried to add non-existing item");
         }
     }
 
     _remove(item) {
-        const index = this.items.indexOf(item);
+        const index = this.items.indexOf(item.name);
         if (index >= 0) {
             this.items.splice(index, 1);
             this.dispatchEvent(new InventoryEvent("removed_item", item));
@@ -117,14 +119,14 @@ class Inventory extends EventTarget {
         if (item.cost > this.money) {
             return false;
         }
-        this._add(item.name);
+        this._add(item);
         this.changeMoney(-item.cost);
         this.checkAchievements();
     }
 
     sell(itemName) {
         const item = this._findItem(itemName);
-        if (this._remove(item.name)) {
+        if (this._remove(item)) {
             this.changeMoney(item.cost);
             this.checkAchievements();
         }
@@ -132,13 +134,13 @@ class Inventory extends EventTarget {
 
     add(itemName) {
         const item = this._findItem(itemName);
-        this._add(item.name);
+        this._add(item);
         this.checkAchievements();
     }
 
     remove(itemName) {
         const item = this._findItem(itemName);
-        if (this._remove(item.name)) {
+        if (this._remove(item)) {
             this.checkAchievements();
         }
     }

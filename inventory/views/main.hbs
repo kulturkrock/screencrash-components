@@ -1,4 +1,7 @@
 
+<div id = "inventory-notifications">
+</div>
+
 <div id = "inventory">
 	<div class = "inventory-header">Inventarium</div>
 	<div id = "inventory-internal">
@@ -44,6 +47,14 @@
 </div>
 
 <!-- Only used for templating -->
+<div class = "inventory-notification">
+	<div class = "inventory-notification-modifier">+</div>
+	<img class = "inventory-notification-icon" src = "/inventory-data/items/item.png">
+	<div class = "inventory-notification-info">
+		Item name
+	</div>
+</div>
+
 <div class = "achievement">
 	<img class = "achievement-icon" src = "/inventory-data/achievements/achievement.jpg">
 	<div class = "achievement-info">
@@ -51,6 +62,8 @@
 		<div class = "achievement-desc">TBD</div>
 	</div>
 </div>
+
+<!-- End of templating -->
 
 <script>
 	var conn = undefined;
@@ -72,6 +85,12 @@
 
 	function handleMessage(msg) {
 		switch (msg.messageType) {
+			case "item_add":
+				announceItemChange("+", msg.item);
+				break;
+			case "item_remove":
+				announceItemChange("-", msg.item);
+				break;
 			case "items":
 				reloadItems(msg.items);
 				break;
@@ -83,6 +102,9 @@
 				break;
 			case "items_visibility":
 				updateInventoryVisibility(msg.visible);
+				break;
+			case "clear_item_animations":
+				clearItemAnimations();
 				break;
 			default:
 				console.log(`Ignoring unhandled message type ${msg.messageType}`);
@@ -126,10 +148,21 @@
 	function updateMoney(amount){
 		document.getElementById('inventory-gold-amount').innerHTML = amount;
 	}
+
+	function announceItemChange(modifier, item) {
+		let notificationNode = document.getElementsByClassName("inventory-notification")[0].cloneNode(true);
+		notificationNode.getElementsByClassName("inventory-notification-modifier")[0].innerHTML = modifier;
+		notificationNode.getElementsByClassName("inventory-notification-icon")[0].setAttribute("src", "/inventory-data/items/" + item.name + ".png");
+		notificationNode.getElementsByClassName("inventory-notification-info")[0].innerHTML = item.description;
+		
+		let container = document.getElementById("inventory-notifications");
+		container.appendChild(notificationNode);
+		notificationNode.className += " visible";
+		setTimeout(function(){ container.removeChild(notificationNode); }, 5000);
+	}
 	
 	function announceAchievement(achievement){
-		console.log('Got an achievement!');
-		console.log(achievement.title + ': ' + achievement.desc);
+		console.log(`Got an achievement! ${achievement.title}: ${achievement.desc}`);
 		let achievementNode = document.getElementsByClassName("achievement")[0].cloneNode(true);
 		achievementNode.getElementsByClassName("achievement-icon")[0].setAttribute("src", "/inventory-data/achievements/" + achievement.name + ".jpg");
 		achievementNode.getElementsByClassName("achievement-name")[0].innerHTML = achievement.title;
@@ -144,5 +177,9 @@
 
 	function updateInventoryVisibility(visible) {
 		document.getElementById("inventory").style.display = (visible ? "block" : "none");
+	}
+	
+	function clearItemAnimations() {
+		document.getElementById("inventory-notifications").innerHTML = "";
 	}
 </script>

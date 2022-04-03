@@ -131,6 +131,16 @@ module.exports = class CommandRouter extends EventTarget {
         this.handlers[entityId].addEventListener('destroyed', this.onHandlerDestroyed.bind(this));
         this.handlers[entityId].addEventListener('log-msg', (ev) => this.logMessage(ev.detail));
 
+        this.handlers[entityId].addEventListener('event', (ev) => {
+            if (!ev.detail.event) {
+                console.log('Warning: Tried to send event without event type set. Ignoring...');
+                return;
+            }
+
+            const { event, ...params } = ev.detail;
+            this.sendFunction({ messageType: 'event', event, params });
+        });
+
         this.sendFunction({
             messageType: 'effect-added',
             entityId: entityId,

@@ -198,6 +198,11 @@ module.exports = class VideoHandler extends VisualHandler {
         }
     }
 
+    stopOnFadeDone() {
+        this.emitEvent('event', { event: 'video_ended', entityId: this.id });
+        super.stopOnFadeDone();
+    }
+
     isFadeStepAllowed() {
         return super.isFadeStepAllowed() && this.isPlaying();
     }
@@ -217,6 +222,7 @@ module.exports = class VideoHandler extends VisualHandler {
     onEnded() {
         if (this.nofLoops === 0) {
             this.destroy();
+            this.emitEvent('event', { event: 'video_ended', entityId: this.id });
         } else {
             if (this.nofLoops > 0) {
                 this.nofLoops -= 1;

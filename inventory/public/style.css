@@ -88,7 +88,7 @@ body{
 	position:absolute;
 	top: 100px;
 	left: 975px;
-	width: 400px;
+	width: 500px;
 	height:120px;
 }
 .achievement{
@@ -111,17 +111,11 @@ body{
 .achievement-info *{
 	font-variant:small-caps;
 }
-.achievement-header{
-	font-size:32px;
-	font-variant:small-caps;
-	font-weight:bold;
-	margin-bottom:10px;
-}
 .achievement-name{
-	font-size:26px;
+	font-size:32px;
 }
 .achievement-desc{
-	font-size:20px;
+	font-size:26px;
 }
 .achievement.visible{
 	position:relative;

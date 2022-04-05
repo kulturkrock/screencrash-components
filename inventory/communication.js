@@ -243,6 +243,9 @@ class CommunicationModel {
                 case "enable_achievement":
                     this.inventory.enableAchievement(message.achievement);
                     break;
+                case "undo_achievement":
+                    this.inventory.undoAchievement(message.achievement);
+                    break;
                 case "setup":
                 case "reset":
                     this.inventory.reset();

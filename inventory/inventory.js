@@ -169,6 +169,14 @@ class Inventory extends EventTarget {
         }
     };
 
+    undoAchievement(name) {
+        const achievementIndex = this.achievements.indexOf(name);
+        if (achievementIndex >= 0) {
+            this.achievements.splice(achievementIndex, 1);
+            this.dispatchEvent(new InventoryEvent("achievements"));
+        }
+    }
+
     checkAchievements() {
         for (const achievementName in this.staticData.achievements) {
             const achievement = this.getAchievement(achievementName);

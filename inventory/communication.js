@@ -25,8 +25,8 @@ class CommunicationModel {
     }
 
     _setupInventoryEvents() {
-        this.inventory.addEventListener("added_item", this._sendItemsUpdate.bind(this));
-        this.inventory.addEventListener("removed_item", this._sendItemsUpdate.bind(this));
+        this.inventory.addEventListener("added_item", this._sendItemAddedUpdate.bind(this));
+        this.inventory.addEventListener("removed_item", this._sendItemRemovedUpdate.bind(this));
         this.inventory.addEventListener("items", this._sendItemsUpdate.bind(this));
         this.inventory.addEventListener("changed_money", this._sendMoneyUpdate.bind(this));
         this.inventory.addEventListener("achievement", this._sendAchievementUpdate.bind(this));
@@ -56,6 +56,18 @@ class CommunicationModel {
         this.coreConnection.onerror = () => {
             console.log("Error on core socket. Closing connection...");
         };
+    }
+
+    _sendItemAddedUpdate(event) {
+        const item = event.data;
+        this._sendToAll({ messageType: "item_add", item: item });
+        this._sendItemsUpdate();
+    }
+
+    _sendItemRemovedUpdate(event) {
+        const item = event.data;
+        this._sendToAll({ messageType: "item_remove", item: item });
+        this._sendItemsUpdate();
     }
 
     _sendItemsUpdate() {
@@ -221,6 +233,9 @@ class CommunicationModel {
                 case "set_items_visibility":
                     // Use to hide items section and only show achievements section
                     this.inventory.setItemsSectionVisibility(message.visible);
+                    break;
+                case "clear_item_animations":
+                    this._sendToAll({ messageType: "clear_item_animations" });
                     break;
                 case "set_currency":
                     this.inventory.setCurrency(message.currency);

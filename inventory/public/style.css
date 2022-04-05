@@ -17,6 +17,7 @@ body{
 	left: 0px;
 	width: 960px;
 	height: 720px;
+	z-index: 2;
 	background:url('/inventory-data/theme/inventory-background.jpg');
 }
 .inventory-header{
@@ -81,6 +82,51 @@ body{
 #inventory-internal.large #inventory-gold-amount,
 #inventory-internal.superlarge #inventory-gold-amount {
 	font-size:24px;
+}
+
+#inventory-notifications {
+	position: absolute;
+	left: 330px;
+	top: 310px;
+	min-width: 250px;
+	min-height: 100px;
+	z-index: 1;
+}
+.inventory-notification {
+	display: none;  /* flex */
+	align-items: center;
+	padding: 10px 20px 10px 10px;
+	margin-bottom: 5px;
+	border: 1px solid;
+	background-image: url("/inventory-data/theme/newitem-background.png");
+	background-repeat: no-repeat;
+	background-size: cover;
+	opacity: 0;
+}
+.inventory-notification-modifier {
+	font-size: 32px;
+	margin-right: 10px;
+}
+.inventory-notification-icon {
+	width: 64px;
+	height: 64px;
+	margin-right: 10px;
+}
+.inventory-notification-info {
+	font-size: 32px;
+	margin-top: 5px;
+}
+.inventory-notification.visible{
+	position:relative;
+	display:flex;
+	animation-name:inventory-notification;
+	animation-duration:5s;
+}
+@keyframes inventory-notification{
+	0% {opacity:0;}
+	5% {opacity:1;}
+	80% {opacity:1;}
+	100% {opacity:0;}
 }
 
 

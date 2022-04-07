@@ -78,11 +78,13 @@ class CommunicationModel {
         this._sendToAll({ messageType: "items_visibility", visible: this.inventory.getItemsSectionVisibility() });
     }
 
-    _sendMoneyUpdate() {
+    _sendMoneyUpdate(event) {
+        const { current, change } = event.data;
         this._sendToAll({
             messageType: "money",
-            money: this.inventory.getCurrentMoney(),
-            currency: this.inventory.getCurrency()
+            money: current,
+            changeAmount: change,
+            currency: this.inventory.getCurrency(change)
         });
     }
 
@@ -130,7 +132,8 @@ class CommunicationModel {
         sock.send(JSON.stringify({
             messageType: "money",
             money: this.inventory.getCurrentMoney(),
-            currency: this.inventory.getCurrency()
+            changeAmount: 0,
+            currency: this.inventory.getCurrency(0)
         }));
         sock.send(JSON.stringify({
             messageType: "achievements",

@@ -17,6 +17,7 @@ class Inventory extends EventTarget {
         this.staticData = { items: [], achievements: {} };
         this.money = 0;
         this.currency = "money";
+        this.currencySingular = null;
         this.itemsSectionVisibility = true;
         this.items = [];
         this.achievements = [];
@@ -53,7 +54,7 @@ class Inventory extends EventTarget {
 
     loadStaticDataFrom(resourceFile) {
         this.staticData = JSON.parse(readFileSync(resourceFile));
-        this.setCurrency(this.staticData.currency);
+        this.setCurrency(this.staticData.currency, this.staticData.currency_singular);
     }
 
     getStaticData() {
@@ -70,15 +71,19 @@ class Inventory extends EventTarget {
         this.achievements = [];
         this.dispatchEvent(new InventoryEvent("achievements"));
         this.money = 0;
-        this.dispatchEvent(new InventoryEvent("changed_money", this.money));
+        this.dispatchEvent(new InventoryEvent("changed_money", { current: this.money, change: 0 }));
     }
 
     getCurrentMoney() {
         return this.money;
     }
 
-    getCurrency() {
-        return this.currency;
+    getCurrency(amount) {
+        if ((amount === 1 || amount === -1) && this.currencySingular !== null) {
+            return this.currencySingular;
+        } else {
+            return this.currency;
+        }
     }
 
     getItemsSectionVisibility() {
@@ -111,7 +116,7 @@ class Inventory extends EventTarget {
 
     changeMoney(amount) {
         this.money += amount;
-        this.dispatchEvent(new InventoryEvent("changed_money", this.money));
+        this.dispatchEvent(new InventoryEvent("changed_money", { current: this.money, change: amount }));
     }
 
     buy(itemName) {
@@ -145,9 +150,12 @@ class Inventory extends EventTarget {
         }
     }
 
-    setCurrency(currency) {
+    setCurrency(currency, currencySingular) {
         if (currency !== undefined && currency !== null) {
             this.currency = currency;
+        }
+        if (currencySingular !== undefined && currencySingular !== null) {
+            this.currencySingular = currencySingular;
         }
     }
 

@@ -98,6 +98,9 @@
 				announceAchievement(msg.achievement);
 				break;
 			case "money":
+				if (msg.changeAmount) {
+					announceMoneyChange(msg.changeAmount, msg.currency);
+				}
 				updateMoney(msg.money);
 				break;
 			case "items_visibility":
@@ -154,6 +157,19 @@
 		notificationNode.getElementsByClassName("inventory-notification-modifier")[0].innerHTML = modifier;
 		notificationNode.getElementsByClassName("inventory-notification-icon")[0].setAttribute("src", "/inventory-data/items/" + item.name + ".png");
 		notificationNode.getElementsByClassName("inventory-notification-info")[0].innerHTML = item.description;
+		
+		let container = document.getElementById("inventory-notifications");
+		container.appendChild(notificationNode);
+		notificationNode.className += " visible";
+		setTimeout(function(){ container.removeChild(notificationNode); }, 5000);
+	}
+
+	function announceMoneyChange(amount, currency) {
+		console.log("annouce money change");
+		let notificationNode = document.getElementsByClassName("inventory-notification")[0].cloneNode(true);
+		notificationNode.getElementsByClassName("inventory-notification-modifier")[0].innerHTML = (amount < 0 ? "-" : "+");
+		notificationNode.getElementsByClassName("inventory-notification-icon")[0].setAttribute("src", "/inventory-data/theme/inventory-money-icon.png");
+		notificationNode.getElementsByClassName("inventory-notification-info")[0].innerHTML = `${amount} ${currency}`;
 		
 		let container = document.getElementById("inventory-notifications");
 		container.appendChild(notificationNode);

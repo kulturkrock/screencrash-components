@@ -4,9 +4,10 @@ import os
 
 class CommandHandler:
 
-    def __init__(self):
+    def __init__(self, bluetooth_connection):
         auto_generated_id = ''.join(random.choices(string.ascii_uppercase, k=16))
         self._component_id = os.environ.get("SCREENCRASH_COMPONENT_ID", auto_generated_id)
+        self._bluetooth_connection = bluetooth_connection
         self._custom_event_handler = None
 
     def set_event_handler(self, event_handler):
@@ -39,6 +40,7 @@ class CommandHandler:
             result = self._announce_component_info()
         elif cmd == "ping":
             print("got a ping")
+            self._bluetooth_connection.send_text("ping")
             self._emit({
                 "messageType": "pong"
             })

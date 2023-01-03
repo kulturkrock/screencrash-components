@@ -2,6 +2,7 @@ import argparse
 import websocket
 from commandhandler import CommandHandler
 from coreconnection import CoreConnection
+from bluetoothconnection import BluetoothConnection
 
 
 def main():
@@ -14,7 +15,9 @@ def main():
     if args.enable_ws_debug:
         websocket.enableTrace(True)
 
-    cmd_handler = CommandHandler()
+    bluetooth_connection = BluetoothConnection()
+    bluetooth_connection.listen()
+    cmd_handler = CommandHandler(bluetooth_connection)
     core_connection = CoreConnection(cmd_handler.initial_message, cmd_handler.handle_message, not args.no_reconnect, args.reconnect_time)
     cmd_handler.set_event_handler(core_connection.send)
     core_connection.run()

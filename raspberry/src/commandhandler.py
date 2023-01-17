@@ -38,12 +38,12 @@ class CommandHandler:
         result = None
         if cmd == "req_component_info":
             result = self._announce_component_info()
-        elif cmd == "ping":
-            print("got a ping")
-            self._bluetooth_connection.send_text("ping")
-            self._emit({
-                "messageType": "pong"
-            })
+        elif cmd == "on":
+            print("Turning on LED")
+            self._bluetooth_connection.send_text("on")
+        elif cmd == "off":
+            print("Turning off LED")
+            self._bluetooth_connection.send_text("off")
         else:
             print("Unhandled message: {}".format(message))
             result = self._create_error_msg("Unsupported command")

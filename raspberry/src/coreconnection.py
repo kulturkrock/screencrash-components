@@ -3,9 +3,15 @@ import json
 import os
 from time import sleep
 
-class CoreConnection:
 
-    def __init__(self, get_announce_message, on_message_callback, reconnect = True, reconnect_time = 3000):
+class CoreConnection:
+    def __init__(
+        self,
+        get_announce_message,
+        on_message_callback,
+        reconnect=True,
+        reconnect_time=3000,
+    ):
         self._get_announce_message = get_announce_message
         self._handle_message_callback = on_message_callback
         self._reconnect = reconnect
@@ -15,13 +21,17 @@ class CoreConnection:
     def run(self):
         while self._reconnect:
             url = f"ws://{os.environ.get('CORE', 'localhost:8001')}"
-            self._ws = websocket.WebSocketApp(url,
-                                            on_open=self._on_open,
-                                            on_message=self._on_message,
-                                            on_error=self._on_error,
-                                            on_close=self._on_close)
+            self._ws = websocket.WebSocketApp(
+                url,
+                on_open=self._on_open,
+                on_message=self._on_message,
+                on_error=self._on_error,
+                on_close=self._on_close,
+            )
 
-            critical_error = self._ws.run_forever(ping_interval=1, ping_payload=self._get_heartbeat_msg())
+            critical_error = self._ws.run_forever(
+                ping_interval=1, ping_payload=self._get_heartbeat_msg()
+            )
 
             # Don't reconnect if user presses Ctrl+C
             if self._reconnect and critical_error:
@@ -42,11 +52,9 @@ class CoreConnection:
             self._ws.close()
 
     def _get_heartbeat_msg(self):
-        return json.dumps({
-            "messageType": "heartbeat",
-            "component": "audio",
-            "channel": 1
-        })
+        return json.dumps(
+            {"messageType": "heartbeat", "component": "raspberry", "channel": 1}
+        )
 
     def _on_message(self, ws, message):
         if self._handle_message_callback:
@@ -67,6 +75,10 @@ class CoreConnection:
             print("Got error: {}".format(error if str(error) else "[Unknown]"))
 
     def _on_close(self, ws, close_status_code, close_msg):
-        extra_info = f"Code={close_status_code}. Message={close_msg}" if close_status_code else ""
+        extra_info = (
+            f"Code={close_status_code}. Message={close_msg}"
+            if close_status_code
+            else ""
+        )
         print(f"Connection closed to core. {extra_info}")
         self._ws = None

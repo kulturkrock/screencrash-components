@@ -24,7 +24,7 @@ class CommandHandler:
         return result
     
     def initial_message(self):
-        return {"client": "raspberry"}
+        return {"client": "ledController"}
 
     def handle_message(self, message):
         try:
@@ -54,6 +54,6 @@ class CommandHandler:
         self._emit({
             "messageType": "component_info",
             "componentId": self._component_id,
-            "componentName": "raspberry",
+            "componentName": "ledController",
             "status": "online"
         })

@@ -53,7 +53,7 @@ class CoreConnection:
 
     def _get_heartbeat_msg(self):
         return json.dumps(
-            {"messageType": "heartbeat", "component": "raspberry", "channel": 1}
+            {"messageType": "heartbeat", "component": "ledController", "channel": 1}
         )
 
     def _on_message(self, ws, message):

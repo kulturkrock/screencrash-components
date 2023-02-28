@@ -1,8 +1,8 @@
-# Raspberry component
+# LedController component
 
 This component talks to a Raspberry Pi through Bluetooth, and controls
-GPIO pins. It will currently be used for costumes in Ragnarök, but who
-knows how generic it will end up?
+GPIO pins to drive LEDs. It is currently written with costumes in
+Ragnarök in mind.
 
 ## How to use
 

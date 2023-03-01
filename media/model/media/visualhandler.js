@@ -14,6 +14,27 @@ module.exports = class VisualHandler extends MediaHandler {
     init(msg, resourcesPath) {
         super.init(msg, resourcesPath);
 
+        if (msg.transitions) {
+            const cssTransitions = [];
+            // Movement along X-axis
+            const transitionMoveX = msg.transitions.move_x || msg.transitions.move;
+            if (transitionMoveX) cssTransitions.push(`top ${transitionMoveX}s`);
+            // Movement along Y-axis
+            const transitionMoveY = msg.transitions.move_y || msg.transitions.move;
+            if (transitionMoveY) cssTransitions.push(`left ${transitionMoveY}s`);
+            // Width
+            const transitionWidth = msg.transitions.width || msg.transitions.size;
+            if (transitionWidth) cssTransitions.push(`width ${transitionWidth}s`);
+            // Height
+            const transitionHeight = msg.transitions.height || msg.transitions.size;
+            if (transitionHeight) cssTransitions.push(`height ${transitionHeight}s`);
+
+            const fullCss = cssTransitions.join(', ');
+            if (fullCss) {
+                this.uiWrapper.style.transition = fullCss;
+            }
+        }
+
         this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
 
         if (msg.visible) {

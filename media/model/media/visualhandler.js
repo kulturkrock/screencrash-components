@@ -17,17 +17,17 @@ module.exports = class VisualHandler extends MediaHandler {
         if (msg.transitions) {
             const cssTransitions = [];
             // Movement along X-axis
-            const transitionMoveX = msg.transitions.move_x || msg.transitions.move;
-            if (transitionMoveX) cssTransitions.push(`top ${transitionMoveX}s`);
+            const transitionMoveX = this._createCssTransition([msg.transitions.move_x, msg.transitions.move], 'left');
+            if (transitionMoveX) cssTransitions.push(transitionMoveX);
             // Movement along Y-axis
-            const transitionMoveY = msg.transitions.move_y || msg.transitions.move;
-            if (transitionMoveY) cssTransitions.push(`left ${transitionMoveY}s`);
+            const transitionMoveY = this._createCssTransition([msg.transitions.move_y, msg.transitions.move], 'top');
+            if (transitionMoveY) cssTransitions.push(transitionMoveY);
             // Width
-            const transitionWidth = msg.transitions.width || msg.transitions.size;
-            if (transitionWidth) cssTransitions.push(`width ${transitionWidth}s`);
+            const transitionWidth = this._createCssTransition([msg.transitions.width, msg.transitions.size], 'width');
+            if (transitionWidth) cssTransitions.push(transitionWidth);
             // Height
-            const transitionHeight = msg.transitions.height || msg.transitions.size;
-            if (transitionHeight) cssTransitions.push(`height ${transitionHeight}s`);
+            const transitionHeight = this._createCssTransition([msg.transitions.height, msg.transitions.size], 'height');
+            if (transitionHeight) cssTransitions.push(transitionHeight);
 
             const fullCss = cssTransitions.join(', ');
             if (fullCss) {
@@ -48,6 +48,16 @@ module.exports = class VisualHandler extends MediaHandler {
         if (typeof msg.layer === 'number') {
             this.setLayer(msg.layer);
         }
+    }
+
+    _createCssTransition(configs, property) {
+        console.log(JSON.stringify({ configs, property }));
+        const duration = configs.reduceRight((prev, curr) => curr && curr.duration != null ? curr.duration : prev, null);
+        const type = configs.reduceRight((prev, curr) => curr && curr.type != null ? curr.type : prev, null);
+        if (duration || type) {
+            return `${property} ${duration || 1}s ${type || 'ease'}`;
+        }
+        return '';
     }
 
     getRegularUpdateState() {

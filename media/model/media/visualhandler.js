@@ -3,6 +3,7 @@ const MediaHandler = require('./mediahandler');
 const $ = require('jquery');
 
 const { addClass, removeClass, hasClass } = require('../domutils');
+const AVAILABLE_ANIMATIONS = ['shake', 'nod'];
 
 module.exports = class VisualHandler extends MediaHandler {
 
@@ -28,11 +29,18 @@ module.exports = class VisualHandler extends MediaHandler {
             // Height
             const transitionHeight = this._createCssTransition([msg.transitions.height, msg.transitions.size], 'height');
             if (transitionHeight) cssTransitions.push(transitionHeight);
+            // Opacity
+            const transitionOpacity = this._createCssTransition([msg.transitions.opacity], 'opacity');
+            if (transitionOpacity) cssTransitions.push(transitionOpacity);
 
             const fullCss = cssTransitions.join(', ');
             if (fullCss) {
                 this.uiWrapper.style.transition = fullCss;
             }
+        }
+
+        if (msg.animation && AVAILABLE_ANIMATIONS.includes(msg.animation)) {
+            this.uiWrapper.className += ` animation-${msg.animation}`;
         }
 
         this.setViewport(msg.x, msg.y, msg.width, msg.height, msg.usePercentage);
@@ -54,8 +62,9 @@ module.exports = class VisualHandler extends MediaHandler {
         console.log(JSON.stringify({ configs, property }));
         const duration = configs.reduceRight((prev, curr) => curr && curr.duration != null ? curr.duration : prev, null);
         const type = configs.reduceRight((prev, curr) => curr && curr.type != null ? curr.type : prev, null);
-        if (duration || type) {
-            return `${property} ${duration || 1}s ${type || 'ease'}`;
+        const delay = configs.reduceRight((prev, curr) => curr && curr.delay != null ? curr.delay : prev, null);
+        if (duration || type || delay) {
+            return `${property} ${duration || 1}s ${type || 'ease'} ${delay || 0}s`;
         }
         return '';
     }

@@ -3,7 +3,7 @@ const MediaHandler = require('./mediahandler');
 const $ = require('jquery');
 
 const { addClass, removeClass, hasClass } = require('../domutils');
-const AVAILABLE_ANIMATIONS = ['shake', 'nod'];
+const AVAILABLE_ANIMATIONS = ['shake', 'nod', 'spin'];
 
 module.exports = class VisualHandler extends MediaHandler {
 

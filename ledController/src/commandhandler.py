@@ -29,21 +29,25 @@ class CommandHandler:
     def handle_message(self, message):
         try:
             cmd = message["command"]
-            entity_id = message.get("entityId")
-            return self._handle_command(cmd, entity_id, message)
+            id = message.get("id")
+            return self._handle_command(cmd, id, message)
         except Exception as e:
+            print(e)
             return self._create_error_msg(f"Failed to carry out command. {e}")
 
-    def _handle_command(self, cmd, entity_id, message):
+    def _handle_command(self, cmd, id, message):
         result = None
         if cmd == "req_component_info":
             result = self._announce_component_info()
         elif cmd == "on":
-            print("Turning on LED")
-            self._bluetooth_connection.send_text("on")
+            print(f"Turning on LED: {id}")
+            self._bluetooth_connection.send_text(f"on:{id}")
         elif cmd == "off":
-            print("Turning off LED")
-            self._bluetooth_connection.send_text("off")
+            print(f"Turning off LED: {id}")
+            self._bluetooth_connection.send_text(f"off:{id}")
+        elif cmd == "toggle":
+            print(f"Toggling LED: {id}")
+            self._bluetooth_connection.send_text(f"toggle:{id}")
         else:
             print("Unhandled message: {}".format(message))
             result = self._create_error_msg("Unsupported command")

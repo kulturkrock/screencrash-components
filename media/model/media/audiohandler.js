@@ -84,6 +84,9 @@ module.exports = class AudioHandler extends MediaHandler {
                 this.stopFade();
                 this.setMuted(!this.isMuted());
                 break;
+            case 'toggle_loop':
+                this.toggleLoop();
+                break;
             default:
                 return super.handleMessage(msg);
         }
@@ -100,6 +103,11 @@ module.exports = class AudioHandler extends MediaHandler {
 
     isLooping() {
         return this.nofLoops !== 0;
+    }
+
+    toggleLoop() {
+        this.nofLoops = this.isLooping() ? 0 : -1;
+        this.emitEvent('changed', this.id);
     }
 
     getDuration() {

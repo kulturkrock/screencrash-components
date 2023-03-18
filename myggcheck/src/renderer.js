@@ -12,6 +12,7 @@ const coreConnection = new Connection(
     `ws://${addr}/`,
     model.getInitialMessage
 );
+model.init(coreConnection.send);
 coreConnection.addEventListener('command', (event) => {
     if (event.detail.command === "restart") {
         ipcRenderer.send('relaunch-app');

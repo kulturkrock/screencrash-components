@@ -10,6 +10,7 @@ module.exports = class CoreConnection extends EventTarget {
         this.reconnectWait = reconnectWait;
         this.socket = null;
         this.heartbeatInterval = null;
+        this.send = this.send.bind(this);
         this.connect();
     }
 

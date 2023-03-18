@@ -8,3 +8,5 @@ It should be sufficient to run `make dev` to build and start it. The component i
 
 ## Variables to control it
 Use the environment variable `SCREENCRASH_CORE` to enlighten this component on where to find the core component.
+
+Use the environment variable `SCREENCRASH_COMPONENT_ID` to give this component instance a name.

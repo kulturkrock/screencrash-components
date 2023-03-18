@@ -3,10 +3,17 @@ module.exports = class Model {
 
     constructor(dom) {
         this.dom = dom;
+        this.componentId =
+            process.env.SCREENCRASH_COMPONENT_ID ||
+            crypto.randomBytes(8).toString('hex');
         this.getInitialMessage = this.getInitialMessage.bind(this);
         this.broken = [];
         this.sendFunction = null;
         this.update();
+    }
+
+    init(_sendFunction) {
+        this.sendFunction = _sendFunction;
     }
 
     sendLogMessage(level, content) {
@@ -51,6 +58,17 @@ module.exports = class Model {
             case "reset":
                 this.broken = [];
                 this.update();
+                break;
+            case 'req_component_info':
+                console.log("Got request for info");
+                if (this.sendFunction) {
+                    this.sendFunction({
+                        messageType: 'component_info',
+                        componentId: this.componentId,
+                        componentName: 'myggcheck',
+                        status: 'online'
+                    });
+                }
                 break;
         }
     }

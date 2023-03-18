@@ -1,10 +1,15 @@
 import socket
+import os
 
 class BluetoothConnection:
 
     def __init__(self):
         self.hostMACAddress = '0C:60:76:8B:10:F4' # MAC address of a Bluetooth adapter on this machine
-        self.port = 5 # Arbitrary, must match what raspberry uses
+        if "BT_PORT" in os.environ:
+            print(f"Using port {int(os.environ['BT_PORT'])}")
+            self.port = int(os.environ["BT_PORT"])
+        else:
+            self.port = 5 # Arbitrary, must match what raspberry uses
         self.backlog = 1 # Not sure what this is
         self.socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
         self.client = None

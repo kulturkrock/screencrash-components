@@ -82,7 +82,7 @@ module.exports = class Model {
         } else {
             const myggInfo = this.broken.map(m => {
                 return `<div class = 'mygginfo'>${m}</div>`;
-            })
+            }).join("");
             parentElement.innerHTML = `<div class = 'container notok'><div class='containercontent'>Trasiga myggor: ${myggInfo}</div></div>`;
         }
     }

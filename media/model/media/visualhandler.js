@@ -59,7 +59,6 @@ module.exports = class VisualHandler extends MediaHandler {
     }
 
     _createCssTransition(configs, property) {
-        console.log(JSON.stringify({ configs, property }));
         const duration = configs.reduceRight((prev, curr) => curr && curr.duration != null ? curr.duration : prev, null);
         const type = configs.reduceRight((prev, curr) => curr && curr.type != null ? curr.type : prev, null);
         const delay = configs.reduceRight((prev, curr) => curr && curr.delay != null ? curr.delay : prev, null);

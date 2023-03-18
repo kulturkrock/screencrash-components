@@ -49,7 +49,7 @@ module.exports = class VisualHandler extends MediaHandler {
             this.setVisible(true);
         }
 
-        if (msg.opacity) {
+        if (msg.opacity != null) {
             this.setOpacity(msg.opacity);
         }
 

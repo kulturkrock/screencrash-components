@@ -13,6 +13,7 @@ module.exports = class VideoHandler extends VisualHandler {
 
     init(createMessage, resourcesPath) {
         super.init(createMessage, resourcesPath);
+        this.resourcesPath = resourcesPath;
 
         const videoPath = `${resourcesPath}/${createMessage.asset}`;
         const autostart = createMessage.autostart === undefined || createMessage.autostart;
@@ -29,7 +30,8 @@ module.exports = class VideoHandler extends VisualHandler {
         this.videoNode.onloadeddata = this.onLoadedData.bind(this);
         this.videoNode.ontimeupdate = this.onTimeUpdated.bind(this);
         this.videoNode.onvolumechange = this.onVolumeChanged.bind(this);
-        this.nofLoops = (createMessage.looping ? createMessage.looping : 1) - 1;
+        this.nofLoops = (createMessage.looping !== undefined ? createMessage.looping : 1) - 1;
+        this.nextFile = null;
         this.lastRecordedTime = -1;
 
         // Variables to keep track of fade out on end
@@ -97,6 +99,12 @@ module.exports = class VideoHandler extends VisualHandler {
                 this.stopFade();
                 this.setMuted(!this.isMuted());
                 break;
+            case 'set_loops':
+                this.nofLoops = msg.looping - 1;
+                break;
+            case 'set_next_file':
+                this.nextFile = `${this.resourcesPath}/${msg.asset}`;
+                break;
             default:
                 return super.handleMessage(msg);
         }
@@ -107,9 +115,9 @@ module.exports = class VideoHandler extends VisualHandler {
 
     isPlaying() {
         return this.videoNode &&
-               !this.videoNode.paused &&
-               !this.videoNode.ended &&
-               this.videoNode.readyState > 2;
+            !this.videoNode.paused &&
+            !this.videoNode.ended &&
+            this.videoNode.readyState > 2;
     }
 
     isLooping() {
@@ -180,7 +188,7 @@ module.exports = class VideoHandler extends VisualHandler {
         if (this.audioDisabled) {
             super.setupFade(fadeTime, from, to, onFadeDone);
         } else {
-            super.setupFade(fadeTime, from, to, () => {});
+            super.setupFade(fadeTime, from, to, () => { });
             const startVolume = (from == null ? this.getVolume() : from * 100);
             this.fadeStartVolume = startVolume;
             this.setVolume(startVolume);
@@ -202,14 +210,19 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     onEnded() {
-        if (this.nofLoops === 0) {
+        if (this.nextFile === null && this.nofLoops === 0) {
             this.destroy();
-        } else {
-            if (this.nofLoops > 0) {
-                this.nofLoops -= 1;
-            }
-            this.play();
+            return;
         }
+        if (this.nofLoops > 0) {
+            this.nofLoops -= 1;
+        }
+        if (this.nextFile !== null) {
+            this.videoNode.children[0].setAttribute('src', this.nextFile);
+            this.videoNode.load();
+            this.nextFile = null;
+        }
+        this.play();
     }
 
     onLoadedData() {

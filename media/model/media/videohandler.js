@@ -14,6 +14,7 @@ class SeamlessVideo extends EventTarget {
         this.looping = false;
         this.currentFilePath = null;
         this.changedFilePath = false;
+        this.playedFilesDuration = 0;
     }
 
     init(uiWrapper, id, audioDisabled, autostart, filePath) {
@@ -46,14 +47,26 @@ class SeamlessVideo extends EventTarget {
         this.changedFilePath = true;
     }
 
+    subtractTime() {
+        return this.playedFilesDuration;
+    };
+
     destroy() {
         clearInterval(this.checkEndInterval);
     }
 
-    _addFileToEnd(filePath) {
-        const videoData = fs.readFileSync(filePath); // TODO not sync?
+    _addFileToEnd(filePath, callback) {
+        if (!Number.isNaN(this.mediaSource.duration)) {
+            this.playedFilesDuration = this.mediaSource.duration;
+        }
+        const videoData = fs.readFileSync(filePath);
         const sourceBuffer = this.mediaSource.sourceBuffers[0];
         sourceBuffer.appendBuffer(Buffer.from(videoData));
+        sourceBuffer.addEventListener('updateend', () => {
+            if (callback) {
+                callback();
+            }
+        }, { once: true });
     }
 
     _checkEnd() {
@@ -62,13 +75,10 @@ class SeamlessVideo extends EventTarget {
             (this.videoNode.duration - this.videoNode.currentTime < 0.5)
         ) {
             if (this.changedFilePath) {
-                this._addFileToEnd(this.currentFilePath);
+                this._addFileToEnd(this.currentFilePath, () => this.dispatchEvent(new CustomEvent('new-file')));
                 this.changedFilePath = false;
             } else if (this.looping) {
-                this._addFileToEnd(this.currentFilePath);
-                this.dispatchEvent(
-                    new CustomEvent('looped')
-                );
+                this._addFileToEnd(this.currentFilePath, () => this.dispatchEvent(new CustomEvent('looped')));
             } else {
                 this.mediaSource.endOfStream();
             }
@@ -112,6 +122,10 @@ class ConvenientVideo extends EventTarget {
         this.changedFilePath = true;
     }
 
+    subtractTime() {
+        return 0;
+    }
+
     destroy() {}
 
     _onEnded() {
@@ -120,6 +134,9 @@ class ConvenientVideo extends EventTarget {
             this.videoNode.load();
             this.videoNode.play();
             this.changedFilePath = false;
+            this.dispatchEvent(
+                new CustomEvent('new-file')
+            );
         } else if (this.looping) {
             this.videoNode.play();
             this.dispatchEvent(
@@ -155,6 +172,7 @@ module.exports = class VideoHandler extends VisualHandler {
             this.video = new ConvenientVideo();
         }
         this.video.init(this.uiWrapper, this.id, this.audioDisabled, autostart, filePath);
+        this.video.addEventListener('new-file', this.onNewFile.bind(this));
         this.video.addEventListener('looped', this.onLooped.bind(this));
         this.video.addEventListener('ended', this.onEnded.bind(this));
 
@@ -269,11 +287,11 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     getDuration() {
-        return this.video.videoNode ? this.video.videoNode.duration : 0;
+        return this.video.videoNode ? this.video.videoNode.duration - this.video.subtractTime() : 0;
     }
 
     getCurrentTime() {
-        return this.video.videoNode ? this.video.videoNode.currentTime : 0;
+        return this.video.videoNode ? Math.max(this.video.videoNode.currentTime - this.video.subtractTime(), 0) : 0;
     }
 
     isMuted() {
@@ -353,6 +371,10 @@ module.exports = class VideoHandler extends VisualHandler {
         if (this.nofLoops === 0) {
             this.video.setLooping(false);
         }
+    }
+
+    onNewFile() {
+        this.emitEvent('changed', this.id);
     }
 
     onError() {

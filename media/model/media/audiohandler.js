@@ -1,7 +1,152 @@
 
 const MediaHandler = require('./mediahandler');
 const path = require('path');
+const fs = require('fs');
 const $ = require('jquery');
+
+class SeamlessAudio extends EventTarget {
+
+    constructor(mimeCodec) {
+        super();
+        this.mimeCodec = mimeCodec;
+        this.audioNode = null; // Public, but can only be used after attach()
+        this.mediaSource = null;
+        this.looping = false;
+        this.currentFilePath = null;
+        this.changedFilePath = false;
+        this.playedFilesDuration = 0;
+    }
+
+    init(uiWrapper, id, audioDisabled, autostart, filePath) {
+        uiWrapper.innerHTML = `
+        <audio id = "audio-${id}" class = "audio-media" ${audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''} />
+        `;
+        this.audioNode = uiWrapper.getElementsByTagName('audio')[0];
+        this.mediaSource = new MediaSource();
+        this.audioNode.src = URL.createObjectURL(this.mediaSource);
+        this.audioNode.onended = this._onEnded.bind(this);
+
+        this.currentFilePath = filePath;
+
+        this.mediaSource.addEventListener('sourceopen', async() => {
+            const sourceBuffer = this.mediaSource.addSourceBuffer(this.mimeCodec);
+            sourceBuffer.mode = 'sequence';
+            this._addFileToEnd(filePath);
+        });
+
+        this.checkEndInterval = setInterval(() => this._checkEnd(), 50);
+    }
+
+    setLooping(looping) {
+        this.looping = looping;
+    }
+
+    nextFile(filePath) {
+        this.currentFilePath = filePath;
+        this.changedFilePath = true;
+    }
+
+    subtractTime() {
+        return this.playedFilesDuration;
+    };
+
+    destroy() {
+        clearInterval(this.checkEndInterval);
+    }
+
+    _addFileToEnd(filePath, callback) {
+        if (!Number.isNaN(this.mediaSource.duration)) {
+            this.playedFilesDuration = this.mediaSource.duration;
+        }
+        const audioData = fs.readFileSync(filePath);
+        const sourceBuffer = this.mediaSource.sourceBuffers[0];
+        sourceBuffer.appendBuffer(Buffer.from(audioData));
+        sourceBuffer.addEventListener('updateend', () => {
+            if (callback) {
+                callback();
+            }
+        }, { once: true });
+    }
+
+    _checkEnd() {
+        if (this.mediaSource.readyState === 'open' &&
+            !this.mediaSource.sourceBuffers[0].updating &&
+            (this.audioNode.duration - this.audioNode.currentTime < 0.5)
+        ) {
+            if (this.changedFilePath) {
+                this._addFileToEnd(this.currentFilePath, () => this.dispatchEvent(new CustomEvent('new-file')));
+                this.changedFilePath = false;
+            } else if (this.looping) {
+                this._addFileToEnd(this.currentFilePath, () => this.dispatchEvent(new CustomEvent('looped')));
+            } else {
+                this.mediaSource.endOfStream();
+            }
+        }
+    }
+
+    _onEnded() {
+        this.dispatchEvent(
+            new CustomEvent('ended')
+        );
+    }
+
+}
+
+class ConvenientAudio extends EventTarget {
+
+    constructor() {
+        super();
+        this.audioNode = null; // Public, but can only be used after attach()
+        this.looping = false;
+        this.currentFilePath = null;
+        this.changedFilePath = false;
+    }
+
+    init(uiWrapper, id, audioDisabled, autostart, filePath) {
+        uiWrapper.innerHTML = `
+        <audio id = "audio-${id}" class = "audio-media" src = "${filePath}" ${audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''} />
+        `;
+        this.audioNode = uiWrapper.getElementsByTagName('audio')[0];
+        this.audioNode.onended = this._onEnded.bind(this);
+    }
+
+    setLooping(looping) {
+        this.looping = looping;
+    }
+
+    nextFile(filePath) {
+        this.currentFilePath = filePath;
+        this.changedFilePath = true;
+    }
+
+    subtractTime() {
+        return 0;
+    }
+
+    destroy() {}
+
+    _onEnded() {
+        if (this.changedFilePath) {
+            this.audioNode.setAttribute('src', this.currentFilePath);
+            this.audioNode.load();
+            this.audioNode.play();
+            this.changedFilePath = false;
+            this.dispatchEvent(
+                new CustomEvent('new-file')
+            );
+        } else if (this.looping) {
+            this.audioNode.play();
+            this.dispatchEvent(
+                new CustomEvent('looped')
+            );
+        } else {
+            this.dispatchEvent(
+                new CustomEvent('ended')
+            );
+        }
+    }
+
+}
 
 module.exports = class AudioHandler extends MediaHandler {
 
@@ -13,20 +158,30 @@ module.exports = class AudioHandler extends MediaHandler {
     init(createMessage, resourcesPath) {
         super.init(createMessage, resourcesPath);
 
-        const audioPath = `${resourcesPath}/${createMessage.asset}`;
+        this.resourcesPath = resourcesPath;
+
+        const filePath = `${this.resourcesPath}/${createMessage.asset}`;
         const autostart = createMessage.autostart === undefined || createMessage.autostart;
-        this.uiWrapper.innerHTML = `
-            <audio id = "audio-${this.id}" class = "audio-media" src = "${audioPath}" ${this.audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''} />
-        `;
+        if (createMessage.seamless) {
+            this.audio = new SeamlessAudio(createMessage.mimeCodec);
+        } else {
+            this.audio = new ConvenientAudio();
+        }
+        this.audio.init(this.uiWrapper, this.id, this.audioDisabled, autostart, filePath);
+        this.audio.addEventListener('new-file', this.onNewFile.bind(this));
+        this.audio.addEventListener('looped', this.onLooped.bind(this));
+        this.audio.addEventListener('ended', this.onEnded.bind(this));
 
         // Set up events and basic data
-        this.audioNode = this.uiWrapper.getElementsByTagName('audio')[0];
-        this.audioNode.addEventListener('error', this.onError.bind(this), true);
-        this.audioNode.onended = this.onEnded.bind(this);
-        this.audioNode.onloadeddata = this.onLoadedData.bind(this);
-        this.audioNode.ontimeupdate = this.onTimeUpdated.bind(this);
-        this.audioNode.onvolumechange = this.onVolumeChanged.bind(this);
-        this.nofLoops = (createMessage.looping ? createMessage.looping : 1) - 1;
+        const audioNode = this.audio.audioNode;
+        audioNode.addEventListener('error', this.onError.bind(this), true);
+        audioNode.onloadeddata = this.onLoadedData.bind(this);
+        audioNode.ontimeupdate = this.onTimeUpdated.bind(this);
+        audioNode.onvolumechange = this.onVolumeChanged.bind(this);
+        this.nofLoops = (createMessage.looping !== undefined ? createMessage.looping : 1) - 1;
+        if (this.nofLoops !== 0) {
+            this.audio.setLooping(true);
+        }
         this.lastRecordedTime = -1;
 
         // Variables to keep track of fade out on end
@@ -39,6 +194,11 @@ module.exports = class AudioHandler extends MediaHandler {
         if (createMessage.displayName) {
             this.name = createMessage.displayName; // Override name
         }
+    }
+
+    destroy() {
+        super.destroy();
+        this.audio.destroy();
     }
 
     getRegularUpdateState() {
@@ -87,6 +247,13 @@ module.exports = class AudioHandler extends MediaHandler {
             case 'toggle_loop':
                 this.toggleLoop();
                 break;
+            case 'set_loops':
+                this.nofLoops = msg.looping - 1;
+                this.audio.setLooping(this.nofLoops !== 0);
+                break;
+            case 'set_next_file':
+                this.audio.nextFile(`${this.resourcesPath}/${msg.asset}`);
+                break;
             default:
                 return super.handleMessage(msg);
         }
@@ -95,10 +262,11 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     isPlaying() {
-        return this.audioNode &&
-               !this.audioNode.paused &&
-               !this.audioNode.ended &&
-               this.audioNode.readyState > 2;
+        const audioNode = this.audio.audioNode;
+        return audioNode &&
+               !audioNode.paused &&
+               !audioNode.ended &&
+               audioNode.readyState > 2;
     }
 
     isLooping() {
@@ -107,54 +275,55 @@ module.exports = class AudioHandler extends MediaHandler {
 
     toggleLoop() {
         this.nofLoops = this.isLooping() ? 0 : -1;
+        this.audio.setLooping(this.nofLoops !== 0);
         this.emitEvent('changed', this.id);
     }
 
     getDuration() {
-        return this.audioNode ? this.audioNode.duration : 0;
+        return this.audio.audioNode ? this.audio.audioNode.duration - this.audio.subtractTime() : 0;
     }
 
     getCurrentTime() {
-        return this.audioNode ? this.audioNode.currentTime : 0;
+        return this.audio.audioNode ? Math.max(this.audio.audioNode.currentTime - this.audio.subtractTime(), 0) : 0;
     }
 
     isMuted() {
-        return this.audioNode ? this.audioNode.muted : false;
+        return this.audio.audioNode ? this.audio.audioNode.muted : false;
     }
 
     getVolume() {
-        return this.audioNode ? Math.round(this.audioNode.volume * 100) : 0;
+        return this.audio.audioNode ? Math.round(this.audio.audioNode.volume * 100) : 0;
     }
 
     play() {
-        if (this.audioNode) {
-            this.audioNode.play();
+        if (this.audio.audioNode) {
+            this.audio.audioNode.play();
         }
     }
 
     pause() {
-        if (this.audioNode) {
-            this.audioNode.pause();
+        if (this.audio.audioNode) {
+            this.audio.audioNode.pause();
         }
     }
 
     seek(position) {
-        if (this.audioNode && position !== undefined && position !== null) {
-            this.audioNode.currentTime = position;
+        if (this.audio.audioNode && position !== undefined && position !== null) {
+            this.audio.audioNode.currentTime = position;
             this.stopFade(this.finalFadeOutStarted);
             this.finalFadeOutStarted = false;
         }
     }
 
     setMuted(muted) {
-        if (this.audioNode && !this.audioDisabled) {
-            this.audioNode.muted = muted;
+        if (this.audio.audioNode && !this.audioDisabled) {
+            this.audio.audioNode.muted = muted;
         }
     }
 
     setVolume(volume) {
-        if (this.audioNode && !this.audioDisabled) {
-            this.audioNode.volume = volume / 100;
+        if (this.audio.audioNode && !this.audioDisabled) {
+            this.audio.audioNode.volume = volume / 100;
         }
     }
 
@@ -163,15 +332,26 @@ module.exports = class AudioHandler extends MediaHandler {
         const startVolume = (from == null ? this.getVolume() : from * 100);
         this.fadeStartVolume = startVolume;
         this.setVolume(startVolume);
-        $(this.audioNode).animate({ volume: to }, fadeTime, onFadeDone);
+        $(this.audio.audioNode).animate({ volume: to }, fadeTime, onFadeDone);
     }
 
     stopFade(requireReset) {
         super.stopFade(requireReset);
-        $(this.audioNode).stop(true, true);
+        $(this.audio.audioNode).stop(true, true);
         if (requireReset) {
             this.setVolume(this.fadeStartVolume);
         }
+    }
+
+    onLooped() {
+        this.nofLoops -= 1;
+        if (this.nofLoops === 0) {
+            this.audio.setLooping(false);
+        }
+    }
+
+    onNewFile() {
+        this.emitEvent('changed', this.id);
     }
 
     onError() {
@@ -180,14 +360,7 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     onEnded() {
-        if (this.nofLoops === 0) {
-            this.destroy();
-        } else {
-            if (this.nofLoops > 0) {
-                this.nofLoops -= 1;
-            }
-            this.play();
-        }
+        this.destroy();
     }
 
     onLoadedData() {
@@ -207,7 +380,7 @@ module.exports = class AudioHandler extends MediaHandler {
             }
         }
 
-        const currentTime = this.audioNode.currentTime;
+        const currentTime = this.audio.audioNode.currentTime;
         if (currentTime < this.lastRecordedTime && currentTime > 0) {
             // Time has changed backwards. Either we looped over and
             // started over or we time jumped. In both cases, we probably

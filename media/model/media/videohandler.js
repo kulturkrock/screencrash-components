@@ -350,7 +350,7 @@ module.exports = class VideoHandler extends VisualHandler {
         if (this.audioDisabled) {
             super.setupFade(fadeTime, from, to, onFadeDone);
         } else {
-            super.setupFade(fadeTime, from, to, () => { });
+            super.setupFade(fadeTime, from, to, () => {});
             const startVolume = (from == null ? this.getVolume() : from * 100);
             this.fadeStartVolume = startVolume;
             this.setVolume(startVolume);

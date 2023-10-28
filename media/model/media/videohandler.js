@@ -6,8 +6,9 @@ const $ = require('jquery');
 
 class SeamlessVideo extends EventTarget {
 
-    constructor() {
+    constructor(mimeCodec) {
         super();
+        this.mimeCodec = mimeCodec;
         this.videoNode = null; // Public, but can only be used after attach()
         this.mediaSource = null;
         this.looping = false;
@@ -28,9 +29,7 @@ class SeamlessVideo extends EventTarget {
         this.currentFilePath = filePath;
 
         this.mediaSource.addEventListener('sourceopen', async() => {
-            // const mimeCodec = 'video/webm; codecs="vp9, vorbis"';
-            const mimeCodec = 'video/mp4; codecs="avc1.640029, mp4a.40.2"';
-            const sourceBuffer = this.mediaSource.addSourceBuffer(mimeCodec);
+            const sourceBuffer = this.mediaSource.addSourceBuffer(this.mimeCodec);
             sourceBuffer.mode = 'sequence';
             this._addFileToEnd(filePath);
         });
@@ -150,7 +149,11 @@ module.exports = class VideoHandler extends VisualHandler {
         const filePath = `${this.resourcesPath}/${createMessage.asset}`;
 
         const autostart = createMessage.autostart === undefined || createMessage.autostart;
-        this.video = new ConvenientVideo();
+        if (createMessage.seamless) {
+            this.video = new SeamlessVideo(createMessage.mimeCodec);
+        } else {
+            this.video = new ConvenientVideo();
+        }
         this.video.init(this.uiWrapper, this.id, this.audioDisabled, autostart, filePath);
         this.video.addEventListener('looped', this.onLooped.bind(this));
         this.video.addEventListener('ended', this.onEnded.bind(this));

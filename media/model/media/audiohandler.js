@@ -46,7 +46,7 @@ class SeamlessAudio extends EventTarget {
         this.changedFilePath = true;
     }
 
-    subtractTime() {
+    playedFilesTime() {
         return this.playedFilesDuration;
     };
 
@@ -119,7 +119,7 @@ class ConvenientAudio extends EventTarget {
         this.changedFilePath = true;
     }
 
-    subtractTime() {
+    playedFilesTime() {
         return 0;
     }
 
@@ -280,11 +280,11 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     getDuration() {
-        return this.audio.audioNode ? this.audio.audioNode.duration - this.audio.subtractTime() : 0;
+        return this.audio.audioNode ? this.audio.audioNode.duration - this.audio.playedFilesTime() : 0;
     }
 
     getCurrentTime() {
-        return this.audio.audioNode ? Math.max(this.audio.audioNode.currentTime - this.audio.subtractTime(), 0) : 0;
+        return this.audio.audioNode ? Math.max(this.audio.audioNode.currentTime - this.audio.playedFilesTime(), 0) : 0;
     }
 
     isMuted() {
@@ -309,7 +309,7 @@ module.exports = class AudioHandler extends MediaHandler {
 
     seek(position) {
         if (this.audio.audioNode && position !== undefined && position !== null) {
-            this.audio.audioNode.currentTime = position;
+            this.audio.audioNode.currentTime = position + this.audio.playedFilesTime();
             this.stopFade(this.finalFadeOutStarted);
             this.finalFadeOutStarted = false;
         }

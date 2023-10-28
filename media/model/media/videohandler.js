@@ -47,7 +47,7 @@ class SeamlessVideo extends EventTarget {
         this.changedFilePath = true;
     }
 
-    subtractTime() {
+    playedFilesTime() {
         return this.playedFilesDuration;
     };
 
@@ -122,7 +122,7 @@ class ConvenientVideo extends EventTarget {
         this.changedFilePath = true;
     }
 
-    subtractTime() {
+    playedFilesTime() {
         return 0;
     }
 
@@ -287,11 +287,11 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     getDuration() {
-        return this.video.videoNode ? this.video.videoNode.duration - this.video.subtractTime() : 0;
+        return this.video.videoNode ? this.video.videoNode.duration - this.video.playedFilesTime() : 0;
     }
 
     getCurrentTime() {
-        return this.video.videoNode ? Math.max(this.video.videoNode.currentTime - this.video.subtractTime(), 0) : 0;
+        return this.video.videoNode ? Math.max(this.video.videoNode.currentTime - this.video.playedFilesTime(), 0) : 0;
     }
 
     isMuted() {
@@ -328,7 +328,7 @@ module.exports = class VideoHandler extends VisualHandler {
 
     seek(position) {
         if (this.video.videoNode && position !== undefined && position !== null) {
-            this.video.videoNode.currentTime = position;
+            this.video.videoNode.currentTime = position + this.video.playedFilesTime();
             this.stopFade(this.finalFadeOutStarted);
             this.finalFadeOutStarted = false;
         }

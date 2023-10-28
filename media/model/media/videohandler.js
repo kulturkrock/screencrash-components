@@ -1,7 +1,139 @@
 
 const VisualHandler = require('./visualhandler');
 const path = require('path');
+const fs = require('fs');
 const $ = require('jquery');
+
+class SeamlessVideo extends EventTarget {
+
+    constructor() {
+        super();
+        this.videoNode = null; // Public, but can only be used after attach()
+        this.mediaSource = null;
+        this.looping = false;
+        this.currentFilePath = null;
+        this.changedFilePath = false;
+    }
+
+    init(uiWrapper, id, audioDisabled, autostart, filePath) {
+        uiWrapper.innerHTML = `
+            <video id = "video-${id}" class = "video-media" ${audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''}>
+            </video>
+        `;
+        this.videoNode = uiWrapper.getElementsByTagName('video')[0];
+        this.mediaSource = new MediaSource();
+        this.videoNode.src = URL.createObjectURL(this.mediaSource);
+        this.videoNode.onended = this._onEnded.bind(this);
+
+        this.currentFilePath = filePath;
+
+        this.mediaSource.addEventListener('sourceopen', async() => {
+            // const mimeCodec = 'video/webm; codecs="vp9, vorbis"';
+            const mimeCodec = 'video/mp4; codecs="avc1.640029, mp4a.40.2"';
+            const sourceBuffer = this.mediaSource.addSourceBuffer(mimeCodec);
+            sourceBuffer.mode = 'sequence';
+            this._addFileToEnd(filePath);
+        });
+
+        this.checkEndInterval = setInterval(() => this._checkEnd(), 50);
+    }
+
+    setLooping(looping) {
+        this.looping = looping;
+    }
+
+    nextFile(filePath) {
+        this.currentFilePath = filePath;
+        this.changedFilePath = true;
+    }
+
+    destroy() {
+        clearInterval(this.checkEndInterval);
+    }
+
+    _addFileToEnd(filePath) {
+        const videoData = fs.readFileSync(filePath); // TODO not sync?
+        const sourceBuffer = this.mediaSource.sourceBuffers[0];
+        sourceBuffer.appendBuffer(Buffer.from(videoData));
+    }
+
+    _checkEnd() {
+        if (this.mediaSource.readyState === 'open' &&
+            !this.mediaSource.sourceBuffers[0].updating &&
+            (this.videoNode.duration - this.videoNode.currentTime < 0.5)
+        ) {
+            if (this.changedFilePath) {
+                this._addFileToEnd(this.currentFilePath);
+                this.changedFilePath = false;
+            } else if (this.looping) {
+                this._addFileToEnd(this.currentFilePath);
+                this.dispatchEvent(
+                    new CustomEvent('looped')
+                );
+            } else {
+                this.mediaSource.endOfStream();
+            }
+        }
+    }
+
+    _onEnded() {
+        this.dispatchEvent(
+            new CustomEvent('ended')
+        );
+    }
+
+}
+
+class ConvenientVideo extends EventTarget {
+
+    constructor() {
+        super();
+        this.videoNode = null; // Public, but can only be used after attach()
+        this.looping = false;
+        this.currentFilePath = null;
+        this.changedFilePath = false;
+    }
+
+    init(uiWrapper, id, audioDisabled, autostart, filePath) {
+        uiWrapper.innerHTML = `
+        <video id = "video-${id}" class = "video-media" ${audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''}>
+            <source src="${filePath}" type="video/mp4" />
+        </video>
+        `;
+        this.videoNode = uiWrapper.getElementsByTagName('video')[0];
+        this.videoNode.onended = this._onEnded.bind(this);
+    }
+
+    setLooping(looping) {
+        this.looping = looping;
+    }
+
+    nextFile(filePath) {
+        this.currentFilePath = filePath;
+        this.changedFilePath = true;
+    }
+
+    destroy() {}
+
+    _onEnded() {
+        if (this.changedFilePath) {
+            this.videoNode.children[0].setAttribute('src', this.currentFilePath);
+            this.videoNode.load();
+            this.videoNode.play();
+            this.changedFilePath = false;
+        } else if (this.looping) {
+            this.videoNode.play();
+            this.dispatchEvent(
+                new CustomEvent('looped')
+            );
+        } else {
+            this.dispatchEvent(
+                new CustomEvent('ended')
+            );
+        }
+    }
+
+}
 
 module.exports = class VideoHandler extends VisualHandler {
 
@@ -15,23 +147,25 @@ module.exports = class VideoHandler extends VisualHandler {
         super.init(createMessage, resourcesPath);
         this.resourcesPath = resourcesPath;
 
-        const videoPath = `${resourcesPath}/${createMessage.asset}`;
+        const filePath = `${this.resourcesPath}/${createMessage.asset}`;
+
         const autostart = createMessage.autostart === undefined || createMessage.autostart;
-        this.uiWrapper.innerHTML = `
-            <video id = "video-${this.id}" class = "video-media" ${this.audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''}>
-                <source src="${videoPath}" type="video/mp4" />
-            </video>
-        `;
+        this.video = new ConvenientVideo();
+        this.video.init(this.uiWrapper, this.id, this.audioDisabled, autostart, filePath);
+        this.video.addEventListener('looped', this.onLooped.bind(this));
+        this.video.addEventListener('ended', this.onEnded.bind(this));
 
         // Set up events and basic data
-        this.videoNode = this.uiWrapper.getElementsByTagName('video')[0];
-        this.videoNode.addEventListener('error', this.onError.bind(this), true);
-        this.videoNode.onended = this.onEnded.bind(this);
-        this.videoNode.onloadeddata = this.onLoadedData.bind(this);
-        this.videoNode.ontimeupdate = this.onTimeUpdated.bind(this);
-        this.videoNode.onvolumechange = this.onVolumeChanged.bind(this);
+        const videoNode = this.video.videoNode;
+
+        videoNode.addEventListener('error', this.onError.bind(this), true);
+        videoNode.onloadeddata = this.onLoadedData.bind(this);
+        videoNode.ontimeupdate = this.onTimeUpdated.bind(this);
+        videoNode.onvolumechange = this.onVolumeChanged.bind(this);
         this.nofLoops = (createMessage.looping !== undefined ? createMessage.looping : 1) - 1;
-        this.nextFile = null;
+        if (this.nofLoops !== 0) {
+            this.video.setLooping(true);
+        }
         this.lastRecordedTime = -1;
 
         // Variables to keep track of fade out on end
@@ -44,6 +178,11 @@ module.exports = class VideoHandler extends VisualHandler {
         if (createMessage.displayName) {
             this.name = createMessage.displayName; // Override name
         }
+    }
+
+    destroy() {
+        super.destroy();
+        this.video.destroy();
     }
 
     getRegularUpdateState() {
@@ -101,9 +240,10 @@ module.exports = class VideoHandler extends VisualHandler {
                 break;
             case 'set_loops':
                 this.nofLoops = msg.looping - 1;
+                this.video.setLooping(this.nofLoops !== 0);
                 break;
             case 'set_next_file':
-                this.nextFile = `${this.resourcesPath}/${msg.asset}`;
+                this.video.nextFile(`${this.resourcesPath}/${msg.asset}`);
                 break;
             default:
                 return super.handleMessage(msg);
@@ -114,10 +254,11 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     isPlaying() {
-        return this.videoNode &&
-            !this.videoNode.paused &&
-            !this.videoNode.ended &&
-            this.videoNode.readyState > 2;
+        const videoNode = this.video.videoNode;
+        return videoNode &&
+            !videoNode.paused &&
+            !videoNode.ended &&
+            videoNode.readyState > 2;
     }
 
     isLooping() {
@@ -125,62 +266,62 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     getDuration() {
-        return this.videoNode ? this.videoNode.duration : 0;
+        return this.video.videoNode ? this.video.videoNode.duration : 0;
     }
 
     getCurrentTime() {
-        return this.videoNode ? this.videoNode.currentTime : 0;
+        return this.video.videoNode ? this.video.videoNode.currentTime : 0;
     }
 
     isMuted() {
-        return this.videoNode ? this.videoNode.muted : false;
+        return this.video.videoNode ? this.video.videoNode.muted : false;
     }
 
     getVolume() {
-        return this.videoNode ? Math.round(this.videoNode.volume * 100) : 0;
+        return this.video.videoNode ? Math.round(this.video.videoNode.volume * 100) : 0;
     }
 
     getScreenshot() {
         const canvas = document.createElement('canvas');
-        canvas.width = this.videoNode.clientWidth;
-        canvas.height = this.videoNode.clientHeight;
+        canvas.width = this.video.videoNode.clientWidth;
+        canvas.height = this.video.videoNode.clientHeight;
 
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(this.videoNode, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(this.video.videoNode, 0, 0, canvas.width, canvas.height);
 
         const result = canvas.toDataURL('image/jpeg', 0.1);
         return result;
     }
 
     play() {
-        if (this.videoNode) {
-            this.videoNode.play();
+        if (this.video.videoNode) {
+            this.video.videoNode.play();
         }
     }
 
     pause() {
-        if (this.videoNode) {
-            this.videoNode.pause();
+        if (this.video.videoNode) {
+            this.video.videoNode.pause();
         }
     }
 
     seek(position) {
-        if (this.videoNode && position !== undefined && position !== null) {
-            this.videoNode.currentTime = position;
+        if (this.video.videoNode && position !== undefined && position !== null) {
+            this.video.videoNode.currentTime = position;
             this.stopFade(this.finalFadeOutStarted);
             this.finalFadeOutStarted = false;
         }
     }
 
     setMuted(muted) {
-        if (this.videoNode && !this.audioDisabled) {
-            this.videoNode.muted = muted;
+        if (this.video.videoNode && !this.audioDisabled) {
+            this.video.videoNode.muted = muted;
         }
     }
 
     setVolume(volume) {
-        if (this.videoNode && !this.audioDisabled) {
-            this.videoNode.volume = volume / 100;
+        if (this.video.videoNode && !this.audioDisabled) {
+            this.video.videoNode.volume = volume / 100;
         }
     }
 
@@ -192,15 +333,22 @@ module.exports = class VideoHandler extends VisualHandler {
             const startVolume = (from == null ? this.getVolume() : from * 100);
             this.fadeStartVolume = startVolume;
             this.setVolume(startVolume);
-            $(this.videoNode).animate({ volume: to }, fadeTime, onFadeDone);
+            $(this.video.videoNode).animate({ volume: to }, fadeTime, onFadeDone);
         }
     }
 
     stopFade(requireReset) {
         super.stopFade(requireReset);
-        $(this.videoNode).stop(true, true);
+        $(this.video.videoNode).stop(true, true);
         if (requireReset && !this.audioDisabled) {
             this.setVolume(this.fadeStartVolume);
+        }
+    }
+
+    onLooped() {
+        this.nofLoops -= 1;
+        if (this.nofLoops === 0) {
+            this.video.setLooping(false);
         }
     }
 
@@ -210,19 +358,7 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     onEnded() {
-        if (this.nextFile === null && this.nofLoops === 0) {
-            this.destroy();
-            return;
-        }
-        if (this.nofLoops > 0) {
-            this.nofLoops -= 1;
-        }
-        if (this.nextFile !== null) {
-            this.videoNode.children[0].setAttribute('src', this.nextFile);
-            this.videoNode.load();
-            this.nextFile = null;
-        }
-        this.play();
+        this.destroy();
     }
 
     onLoadedData() {
@@ -242,7 +378,7 @@ module.exports = class VideoHandler extends VisualHandler {
             }
         }
 
-        const currentTime = this.videoNode.currentTime;
+        const currentTime = this.video.videoNode.currentTime;
         if (currentTime < this.lastRecordedTime && currentTime > 0) {
             // Time has changed backwards. Either we looped over and
             // started over or we time jumped. In both cases, we probably

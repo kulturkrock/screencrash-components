@@ -9,7 +9,7 @@ class SeamlessVideo extends EventTarget {
     constructor(mimeCodec) {
         super();
         this.mimeCodec = mimeCodec;
-        this.videoNode = null; // Public, but can only be used after attach()
+        this.videoNode = null; // Public, but can only be used after init()
         this.mediaSource = null;
         this.looping = false;
         this.currentFilePath = null;

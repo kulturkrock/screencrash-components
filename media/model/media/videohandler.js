@@ -71,6 +71,7 @@ class SeamlessVideo extends EventTarget {
 
     _checkEnd() {
         if (this.mediaSource.readyState === 'open' &&
+            this.mediaSource.sourceBuffers[0] &&
             !this.mediaSource.sourceBuffers[0].updating &&
             (this.videoNode.duration - this.videoNode.currentTime < 0.5)
         ) {

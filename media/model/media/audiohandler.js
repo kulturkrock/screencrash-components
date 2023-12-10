@@ -9,7 +9,7 @@ class SeamlessAudio extends EventTarget {
     constructor(mimeCodec) {
         super();
         this.mimeCodec = mimeCodec;
-        this.audioNode = null; // Public, but can only be used after attach()
+        this.audioNode = null; // Public, but can only be used after init()
         this.mediaSource = null;
         this.looping = false;
         this.currentFilePath = null;

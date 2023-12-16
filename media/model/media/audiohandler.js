@@ -8,10 +8,8 @@ const AUDIO_BUFFER_LENGTH_SECONDS = 30;
 
 class SeamlessAudio extends EventTarget {
 
-    constructor(mimeCodec) {
+    constructor() {
         super();
-        this.mimeCodec = mimeCodec;
-        this.audioNode = null; // Public, but can only be used after init()
         this.audioContext = new AudioContext();
         this.audioBufferSource = null;
         this.audioBuffer = null;
@@ -22,14 +20,10 @@ class SeamlessAudio extends EventTarget {
         this.looping = false;
         this.currentFilePath = null;
         this.playedFilesDuration = 0;
+        this.playing = false;
     }
 
     async init(uiWrapper, id, audioDisabled, autostart, filePath) {
-        // TODO remove element? Or make a fake one just for controls?
-        uiWrapper.innerHTML = `
-        <audio id = "audio-${id}" class = "audio-media" ${audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''} />
-        `;
-        this.audioNode = uiWrapper.getElementsByTagName('audio')[0];
         // TODO: Set number of channels based on audio file
         this.audioBuffer = this.audioContext.createBuffer(
             2,
@@ -49,7 +43,10 @@ class SeamlessAudio extends EventTarget {
         this.audioBufferSource.connect(this.audioContext.destination);
         this.audioBufferSource.loop = true;
         this.audioBufferSource.start();
-
+        this.playing = true;
+        this.dispatchEvent(
+            new CustomEvent('changed')
+        );
         this.checkEndInterval = setInterval(() => this._checkEnd(), 50);
     }
 
@@ -71,17 +68,64 @@ class SeamlessAudio extends EventTarget {
         this.audioContext.close();
     }
 
-    _addDataToBuffer() {
-        // if (!Number.isNaN(this.mediaSource.duration)) {
-        //     this.playedFilesDuration = this.mediaSource.duration;
-        // }
+    isPlaying() {
+        return this.playing;
+    }
 
+    getDuration() {
+        return this.fullCurrentFileBuffer !== null ? this.fullCurrentFileBuffer.duration : 0;
+    }
+
+    getCurrentTime() {
+        return this.audioContext.currentTime - this.playedFilesDuration + this.audioContextSeekOffset;
+    }
+
+    getVolume() {
+        return 100; // TODO for real
+    }
+
+    isMuted() {
+        return false; // TODO for real
+    }
+
+    play() {
+        this.audioContext.resume();
+        this.playing = true;
+        this.dispatchEvent(
+            new CustomEvent('changed')
+        );
+    }
+
+    pause() {
+        this.audioContext.suspend();
+        this.playing = false;
+        this.dispatchEvent(
+            new CustomEvent('changed')
+        );
+    }
+
+    seek(position) {
+        const playedFraction = (this.audioContext.currentTime % AUDIO_BUFFER_LENGTH_SECONDS) / AUDIO_BUFFER_LENGTH_SECONDS;
+        const playedAudioBufferIndex = Math.round(playedFraction * this.audioBuffer.length);
+        this.audioBufferIndex = playedAudioBufferIndex;
+        this.fullCurrentFileBufferIndex = position * this.fullCurrentFileBuffer.sampleRate;
+        this._addDataToBuffer();
+        this.audioContextSeekOffset = position - (this.audioContext.currentTime - this.playedFilesDuration);
+    }
+
+    setMuted(muted) {
+        // TODO for real
+    }
+
+    setVolume(volume) {
+        // TODO for real
+    }
+
+    _addDataToBuffer() {
         const fullCurrentFileBufferEndIndex = Math.min(
             this.fullCurrentFileBufferIndex + this.audioBuffer.length / 2,
             this.fullCurrentFileBuffer.length
         );
-        // console.log('fullCurrentFileBufferEndIndex', fullCurrentFileBufferEndIndex);
-        // console.log('this.fullCurrentFileBuffer.length', this.fullCurrentFileBuffer.length);
         const audioBufferEndIndex = this.audioBufferIndex + fullCurrentFileBufferEndIndex - this.fullCurrentFileBufferIndex;
 
         for (let channel = 0; channel < this.audioBuffer.numberOfChannels; channel++) {
@@ -115,12 +159,14 @@ class SeamlessAudio extends EventTarget {
                 console.log('end of file buffer');
                 if (this.nextFileBuffer !== null) {
                     console.log('changed file path');
+                    this.playedFilesDuration += this.fullCurrentFileBuffer.duration;
                     this.fullCurrentFileBuffer = this.nextFileBuffer;
                     this.fullCurrentFileBufferIndex = 0;
                     this.nextFileBuffer = null;
                     this.dispatchEvent(new CustomEvent('new-file'));
                 } else if (this.looping) {
                     console.log('looping');
+                    this.playedFilesDuration += this.fullCurrentFileBuffer.duration;
                     this.fullCurrentFileBufferIndex = 0;
                     this.dispatchEvent(new CustomEvent('looped'));
                 } else {
@@ -216,7 +262,7 @@ module.exports = class AudioHandler extends MediaHandler {
         const filePath = `${this.resourcesPath}/${createMessage.asset}`;
         const autostart = createMessage.autostart === undefined || createMessage.autostart;
         if (createMessage.seamless) {
-            this.audio = new SeamlessAudio(createMessage.mimeCodec);
+            this.audio = new SeamlessAudio();
         } else {
             this.audio = new ConvenientAudio();
         }
@@ -226,11 +272,15 @@ module.exports = class AudioHandler extends MediaHandler {
         this.audio.addEventListener('ended', this.onEnded.bind(this));
 
         // Set up events and basic data
-        const audioNode = this.audio.audioNode;
-        audioNode.addEventListener('error', this.onError.bind(this), true);
-        audioNode.onloadeddata = this.onLoadedData.bind(this);
-        audioNode.ontimeupdate = this.onTimeUpdated.bind(this);
-        audioNode.onvolumechange = this.onVolumeChanged.bind(this);
+        if (this.audio.audioNode) {
+            const audioNode = this.audio.audioNode;
+            audioNode.addEventListener('error', this.onError.bind(this), true);
+            audioNode.onloadeddata = this.onLoadedData.bind(this);
+            audioNode.ontimeupdate = this.onTimeUpdated.bind(this);
+            audioNode.onvolumechange = this.onVolumeChanged.bind(this);
+        } else {
+            this.audio.addEventListener('changed', () => this.emitEvent('changed', this.id));
+        }
         this.nofLoops = (createMessage.looping !== undefined ? createMessage.looping : 1) - 1;
         if (this.nofLoops !== 0) {
             this.audio.setLooping(true);
@@ -262,7 +312,7 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     getState() {
-        return {
+        const state = {
             ...super.getState(),
             effectType: 'audio',
             name: this.name,
@@ -274,6 +324,8 @@ module.exports = class AudioHandler extends MediaHandler {
             muted: this.isMuted(),
             volume: this.getVolume()
         };
+        console.log(state);
+        return state;
     }
 
     handleMessage(msg) {
@@ -308,6 +360,7 @@ module.exports = class AudioHandler extends MediaHandler {
                 this.audio.nextFile(`${this.resourcesPath}/${msg.asset}`);
                 break;
             default:
+                console.log(msg);
                 return super.handleMessage(msg);
         }
 
@@ -315,11 +368,15 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     isPlaying() {
-        const audioNode = this.audio.audioNode;
-        return audioNode &&
-               !audioNode.paused &&
-               !audioNode.ended &&
-               audioNode.readyState > 2;
+        if (this.audio.audioNode) {
+            const audioNode = this.audio.audioNode;
+            return audioNode &&
+                !audioNode.paused &&
+                !audioNode.ended &&
+                audioNode.readyState > 2;
+        } else {
+            return this.audio.isPlaying();
+        }
     }
 
     isLooping() {
@@ -333,50 +390,81 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     getDuration() {
-        return this.audio.audioNode ? this.audio.audioNode.duration - this.audio.playedFilesTime() : 0;
+        if (this.audio.audioNode) {
+            return this.audio.audioNode.duration - this.audio.playedFilesTime();
+        } else {
+            return this.audio.getDuration();
+        }
     }
 
     getCurrentTime() {
-        return this.audio.audioNode ? Math.max(this.audio.audioNode.currentTime - this.audio.playedFilesTime(), 0) : 0;
+        if (this.audio.audioNode) {
+            return Math.max(this.audio.audioNode.currentTime - this.audio.playedFilesTime(), 0);
+        } else {
+            return this.audio.getCurrentTime();
+        }
     }
 
     isMuted() {
-        return this.audio.audioNode ? this.audio.audioNode.muted : false;
+        if (this.audio.audioNode) {
+            return this.audio.audioNode ? this.audio.audioNode.muted : false;
+        } else {
+            return this.audio.isMuted();
+        }
     }
 
     getVolume() {
-        return this.audio.audioNode ? Math.round(this.audio.audioNode.volume * 100) : 0;
+        if (this.audio.audioNode) {
+            return this.audio.audioNode ? Math.round(this.audio.audioNode.volume * 100) : 0;
+        } else {
+            return this.audio.getVolume();
+        }
     }
 
     play() {
         if (this.audio.audioNode) {
             this.audio.audioNode.play();
+        } else {
+            this.audio.play();
         }
     }
 
     pause() {
         if (this.audio.audioNode) {
             this.audio.audioNode.pause();
+        } else {
+            this.audio.pause();
         }
     }
 
     seek(position) {
-        if (this.audio.audioNode && position !== undefined && position !== null) {
-            this.audio.audioNode.currentTime = position + this.audio.playedFilesTime();
-            this.stopFade(this.finalFadeOutStarted);
-            this.finalFadeOutStarted = false;
+        if (this.audio.audioNode) {
+            if (this.audio.audioNode && position !== undefined && position !== null) {
+                this.audio.audioNode.currentTime = position + this.audio.playedFilesTime();
+                this.stopFade(this.finalFadeOutStarted);
+                this.finalFadeOutStarted = false;
+            }
+        } else {
+            if (position !== undefined && position !== null) {
+                // TODO handle fade
+                this.audio.seek(position);
+            }
         }
     }
 
     setMuted(muted) {
         if (this.audio.audioNode && !this.audioDisabled) {
             this.audio.audioNode.muted = muted;
+        } else if (!this.audioDisabled) {
+            this.audio.setMuted(muted);
         }
     }
 
     setVolume(volume) {
         if (this.audio.audioNode && !this.audioDisabled) {
             this.audio.audioNode.volume = volume / 100;
+        } else if (!this.audioDisabled) {
+            this.audio.setVolume(volume);
         }
     }
 

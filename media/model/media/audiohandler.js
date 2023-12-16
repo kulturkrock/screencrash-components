@@ -4,35 +4,51 @@ const path = require('path');
 const fs = require('fs');
 const $ = require('jquery');
 
+const AUDIO_BUFFER_LENGTH_SECONDS = 30;
+
 class SeamlessAudio extends EventTarget {
 
     constructor(mimeCodec) {
         super();
         this.mimeCodec = mimeCodec;
         this.audioNode = null; // Public, but can only be used after init()
-        this.mediaSource = null;
+        this.audioContext = new AudioContext();
+        this.audioBufferSource = null;
+        this.audioBuffer = null;
+        this.audioBufferIndex = 0;
+        this.fullCurrentFileBuffer = null;
+        this.fullCurrentFileBufferIndex = 0;
+        this.nextFileBuffer = null;
         this.looping = false;
         this.currentFilePath = null;
-        this.changedFilePath = false;
         this.playedFilesDuration = 0;
     }
 
-    init(uiWrapper, id, audioDisabled, autostart, filePath) {
+    async init(uiWrapper, id, audioDisabled, autostart, filePath) {
+        // TODO remove element? Or make a fake one just for controls?
         uiWrapper.innerHTML = `
         <audio id = "audio-${id}" class = "audio-media" ${audioDisabled ? 'muted' : ''} ${autostart ? 'autoplay' : ''} />
         `;
         this.audioNode = uiWrapper.getElementsByTagName('audio')[0];
-        this.mediaSource = new MediaSource();
-        this.audioNode.src = URL.createObjectURL(this.mediaSource);
-        this.audioNode.onended = this._onEnded.bind(this);
-
+        // TODO: Set number of channels based on audio file
+        this.audioBuffer = this.audioContext.createBuffer(
+            2,
+            this.audioContext.sampleRate * AUDIO_BUFFER_LENGTH_SECONDS,
+            this.audioContext.sampleRate
+        );
+        this.silenceBuffer = this.audioContext.createBuffer(
+            2,
+            this.audioContext.sampleRate * AUDIO_BUFFER_LENGTH_SECONDS,
+            this.audioContext.sampleRate
+        );
         this.currentFilePath = filePath;
-
-        this.mediaSource.addEventListener('sourceopen', async() => {
-            const sourceBuffer = this.mediaSource.addSourceBuffer(this.mimeCodec);
-            sourceBuffer.mode = 'sequence';
-            this._addFileToEnd(filePath);
-        });
+        this.fullCurrentFileBuffer = await this.audioContext.decodeAudioData(fs.readFileSync(this.currentFilePath).buffer);
+        this._addDataToBuffer();
+        this.audioBufferSource = this.audioContext.createBufferSource();
+        this.audioBufferSource.buffer = this.audioBuffer;
+        this.audioBufferSource.connect(this.audioContext.destination);
+        this.audioBufferSource.loop = true;
+        this.audioBufferSource.start();
 
         this.checkEndInterval = setInterval(() => this._checkEnd(), 50);
     }
@@ -41,9 +57,9 @@ class SeamlessAudio extends EventTarget {
         this.looping = looping;
     }
 
-    nextFile(filePath) {
+    async nextFile(filePath) {
         this.currentFilePath = filePath;
-        this.changedFilePath = true;
+        this.nextFileBuffer = await this.audioContext.decodeAudioData(fs.readFileSync(this.currentFilePath).buffer);
     }
 
     playedFilesTime() {
@@ -52,35 +68,72 @@ class SeamlessAudio extends EventTarget {
 
     destroy() {
         clearInterval(this.checkEndInterval);
+        this.audioContext.close();
     }
 
-    _addFileToEnd(filePath, callback) {
-        if (!Number.isNaN(this.mediaSource.duration)) {
-            this.playedFilesDuration = this.mediaSource.duration;
-        }
-        const audioData = fs.readFileSync(filePath);
-        const sourceBuffer = this.mediaSource.sourceBuffers[0];
-        sourceBuffer.appendBuffer(Buffer.from(audioData));
-        sourceBuffer.addEventListener('updateend', () => {
-            if (callback) {
-                callback();
+    _addDataToBuffer() {
+        // if (!Number.isNaN(this.mediaSource.duration)) {
+        //     this.playedFilesDuration = this.mediaSource.duration;
+        // }
+
+        const fullCurrentFileBufferEndIndex = Math.min(
+            this.fullCurrentFileBufferIndex + this.audioBuffer.length / 2,
+            this.fullCurrentFileBuffer.length
+        );
+        // console.log('fullCurrentFileBufferEndIndex', fullCurrentFileBufferEndIndex);
+        // console.log('this.fullCurrentFileBuffer.length', this.fullCurrentFileBuffer.length);
+        const audioBufferEndIndex = this.audioBufferIndex + fullCurrentFileBufferEndIndex - this.fullCurrentFileBufferIndex;
+
+        for (let channel = 0; channel < this.audioBuffer.numberOfChannels; channel++) {
+            this.audioBuffer.copyToChannel(
+                this.fullCurrentFileBuffer.getChannelData(channel).slice(this.fullCurrentFileBufferIndex, fullCurrentFileBufferEndIndex),
+                channel,
+                this.audioBufferIndex
+            );
+            if (audioBufferEndIndex > this.audioBuffer.length) {
+                this.audioBuffer.copyToChannel(
+                    this.fullCurrentFileBuffer.getChannelData(channel).slice(
+                        fullCurrentFileBufferEndIndex - (audioBufferEndIndex - this.audioBuffer.length),
+                        fullCurrentFileBufferEndIndex
+                    ),
+                    channel,
+                    0
+                );
             }
-        }, { once: true });
+        }
+
+        this.audioBufferIndex = audioBufferEndIndex % this.audioBuffer.length;
+        this.fullCurrentFileBufferIndex = fullCurrentFileBufferEndIndex;
     }
 
     _checkEnd() {
-        if (this.mediaSource.readyState === 'open' &&
-            !this.mediaSource.sourceBuffers[0].updating &&
-            (this.audioNode.duration - this.audioNode.currentTime < 0.5)
-        ) {
-            if (this.changedFilePath) {
-                this._addFileToEnd(this.currentFilePath, () => this.dispatchEvent(new CustomEvent('new-file')));
-                this.changedFilePath = false;
-            } else if (this.looping) {
-                this._addFileToEnd(this.currentFilePath, () => this.dispatchEvent(new CustomEvent('looped')));
-            } else {
-                this.mediaSource.endOfStream();
+        const playedFraction = (this.audioContext.currentTime % AUDIO_BUFFER_LENGTH_SECONDS) / AUDIO_BUFFER_LENGTH_SECONDS;
+        const playedAudioBufferIndex = Math.round(playedFraction * this.audioBuffer.length);
+        const minSamplesToEnd = this.audioContext.sampleRate * 0.1;
+        if ((this.audioBuffer.length + this.audioBufferIndex - playedAudioBufferIndex) % this.audioBuffer.length < minSamplesToEnd) {
+            if (this.fullCurrentFileBufferIndex === this.fullCurrentFileBuffer.length) {
+                console.log('end of file buffer');
+                if (this.nextFileBuffer !== null) {
+                    console.log('changed file path');
+                    this.fullCurrentFileBuffer = this.nextFileBuffer;
+                    this.fullCurrentFileBufferIndex = 0;
+                    this.nextFileBuffer = null;
+                    this.dispatchEvent(new CustomEvent('new-file'));
+                } else if (this.looping) {
+                    console.log('looping');
+                    this.fullCurrentFileBufferIndex = 0;
+                    this.dispatchEvent(new CustomEvent('looped'));
+                } else {
+                    console.log('end');
+                    this.audioBufferSource.loop = false;
+                    this.fullCurrentFileBuffer = this.silenceBuffer;
+                    this.fullCurrentFileBufferIndex = 0;
+                    this.audioBufferSource.addEventListener('ended', () => {
+                        this._onEnded();
+                    }, { once: true });
+                }
             }
+            this._addDataToBuffer();
         }
     }
 

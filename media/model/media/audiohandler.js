@@ -127,7 +127,7 @@ class SeamlessAudio extends EventTarget {
     setVolume(volume) {
         this.unmutedVolume = volume;
         if (!this.muted) {
-            this.volumeControlNode.gain.value = this.unmutedVolume / 100;
+            this.volumeControlNode.gain.exponentialRampToValueAtTime(this.unmutedVolume / 100, this.audioContext.currentTime + 0.1);
         }
     }
 
@@ -330,7 +330,6 @@ module.exports = class AudioHandler extends MediaHandler {
             muted: this.isMuted(),
             volume: this.getVolume()
         };
-        console.log(state);
         return state;
     }
 
@@ -366,7 +365,6 @@ module.exports = class AudioHandler extends MediaHandler {
                 this.audio.nextFile(`${this.resourcesPath}/${msg.asset}`);
                 break;
             default:
-                console.log(msg);
                 return super.handleMessage(msg);
         }
 

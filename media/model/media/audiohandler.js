@@ -261,8 +261,6 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     init(createMessage, resourcesPath) {
-        super.init(createMessage, resourcesPath);
-
         this.resourcesPath = resourcesPath;
 
         const filePath = `${this.resourcesPath}/${createMessage.asset}`;
@@ -273,6 +271,7 @@ module.exports = class AudioHandler extends MediaHandler {
             this.audio = new ConvenientAudio();
         }
         this.audio.init(this.uiWrapper, this.id, this.audioDisabled, autostart, filePath);
+        super.init(createMessage, resourcesPath); // Because we need audoNode to exist
         this.audio.addEventListener('new-file', this.onNewFile.bind(this));
         this.audio.addEventListener('looped', this.onLooped.bind(this));
         this.audio.addEventListener('ended', this.onEnded.bind(this));
@@ -474,17 +473,21 @@ module.exports = class AudioHandler extends MediaHandler {
 
     setupFade(fadeTime, from, to, onFadeDone) {
         super.setupFade(fadeTime, from, to, () => {});
-        const startVolume = (from == null ? this.getVolume() : from * 100);
-        this.fadeStartVolume = startVolume;
-        this.setVolume(startVolume);
-        $(this.audio.audioNode).animate({ volume: to }, fadeTime, onFadeDone);
+        if (this.audio.audioNode) {
+            const startVolume = (from == null ? this.getVolume() : from * 100);
+            this.fadeStartVolume = startVolume;
+            this.setVolume(startVolume);
+            $(this.audio.audioNode).animate({ volume: to }, fadeTime, onFadeDone);
+        }
     }
 
     stopFade(requireReset) {
         super.stopFade(requireReset);
-        $(this.audio.audioNode).stop(true, true);
-        if (requireReset) {
-            this.setVolume(this.fadeStartVolume);
+        if (this.audio.audioNode) {
+            $(this.audio.audioNode).stop(true, true);
+            if (requireReset) {
+                this.setVolume(this.fadeStartVolume);
+            }
         }
     }
 
@@ -517,11 +520,13 @@ module.exports = class AudioHandler extends MediaHandler {
     }
 
     onTimeUpdated(event) {
-        if (this.finalFadeOutTime > 0 && !this.finalFadeOutStarted) {
-            const timeLeft = (this.getDuration() - this.getCurrentTime()) + (this.nofLoops * this.getDuration());
-            if (timeLeft < this.finalFadeOutTime) {
-                this.finalFadeOutStarted = true;
-                this.startFade(this.finalFadeOutTime, null, 0.0, true);
+        if (this.audio.audioNode) {
+            if (this.finalFadeOutTime > 0 && !this.finalFadeOutStarted) {
+                const timeLeft = (this.getDuration() - this.getCurrentTime()) + (this.nofLoops * this.getDuration());
+                if (timeLeft < this.finalFadeOutTime) {
+                    this.finalFadeOutStarted = true;
+                    this.startFade(this.finalFadeOutTime, null, 0.0, true);
+                }
             }
         }
 

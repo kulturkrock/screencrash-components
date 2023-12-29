@@ -11,7 +11,9 @@ class SeamlessAudio extends EventTarget {
     constructor() {
         super();
         this.audioContext = new AudioContext();
+        this.audioContextSeekOffset = 0;
         this.audioBufferSource = null;
+        this.volumeControlNode = null;
         this.audioBuffer = null;
         this.audioBufferIndex = 0;
         this.fullCurrentFileBuffer = null;
@@ -21,6 +23,8 @@ class SeamlessAudio extends EventTarget {
         this.currentFilePath = null;
         this.playedFilesDuration = 0;
         this.playing = false;
+        this.unmutedVolume = 100;
+        this.muted = false;
     }
 
     async init(uiWrapper, id, audioDisabled, autostart, filePath) {
@@ -40,7 +44,9 @@ class SeamlessAudio extends EventTarget {
         this._addDataToBuffer();
         this.audioBufferSource = this.audioContext.createBufferSource();
         this.audioBufferSource.buffer = this.audioBuffer;
-        this.audioBufferSource.connect(this.audioContext.destination);
+        this.volumeControlNode = this.audioContext.createGain();
+        this.audioBufferSource.connect(this.volumeControlNode);
+        this.volumeControlNode.connect(this.audioContext.destination);
         this.audioBufferSource.loop = true;
         this.audioBufferSource.start();
         this.playing = true;
@@ -81,11 +87,11 @@ class SeamlessAudio extends EventTarget {
     }
 
     getVolume() {
-        return 100; // TODO for real
+        return this.unmutedVolume;
     }
 
     isMuted() {
-        return false; // TODO for real
+        return this.muted;
     }
 
     play() {
@@ -114,11 +120,15 @@ class SeamlessAudio extends EventTarget {
     }
 
     setMuted(muted) {
-        // TODO for real
+        this.volumeControlNode.gain.value = muted ? 0 : this.unmutedVolume / 100;
+        this.muted = muted;
     }
 
     setVolume(volume) {
-        // TODO for real
+        this.unmutedVolume = volume;
+        if (!this.muted) {
+            this.volumeControlNode.gain.value = this.unmutedVolume / 100;
+        }
     }
 
     _addDataToBuffer() {
@@ -156,21 +166,17 @@ class SeamlessAudio extends EventTarget {
         const minSamplesToEnd = this.audioContext.sampleRate * 0.1;
         if ((this.audioBuffer.length + this.audioBufferIndex - playedAudioBufferIndex) % this.audioBuffer.length < minSamplesToEnd) {
             if (this.fullCurrentFileBufferIndex === this.fullCurrentFileBuffer.length) {
-                console.log('end of file buffer');
                 if (this.nextFileBuffer !== null) {
-                    console.log('changed file path');
                     this.playedFilesDuration += this.fullCurrentFileBuffer.duration;
                     this.fullCurrentFileBuffer = this.nextFileBuffer;
                     this.fullCurrentFileBufferIndex = 0;
                     this.nextFileBuffer = null;
                     this.dispatchEvent(new CustomEvent('new-file'));
                 } else if (this.looping) {
-                    console.log('looping');
                     this.playedFilesDuration += this.fullCurrentFileBuffer.duration;
                     this.fullCurrentFileBufferIndex = 0;
                     this.dispatchEvent(new CustomEvent('looped'));
                 } else {
-                    console.log('end');
                     this.audioBufferSource.loop = false;
                     this.fullCurrentFileBuffer = this.silenceBuffer;
                     this.fullCurrentFileBufferIndex = 0;

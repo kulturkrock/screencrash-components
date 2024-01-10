@@ -195,6 +195,8 @@ module.exports = class VideoHandler extends VisualHandler {
         this.finalFadeOutStarted = false;
         this.fadeStartVolume = 0;
 
+        this.destroyOnEnd = createMessage.destroyOnEnd ?? true;
+
         // Set name of this handler
         this.name = path.parse(createMessage.asset).name;
         if (createMessage.displayName) {
@@ -384,7 +386,9 @@ module.exports = class VideoHandler extends VisualHandler {
     }
 
     onEnded() {
-        this.destroy();
+        if (this.destroyOnEnd) {
+            this.destroy();
+        }
     }
 
     onLoadedData() {

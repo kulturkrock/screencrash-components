@@ -51,7 +51,7 @@ module.exports = class CoreConnection extends EventTarget {
 
     onDisconnected(event) {
         this.socket = null;
-        if (!event.wasClean) {
+        if (true || !event.wasClean) {
             if (this.reconnect) {
                 console.log('Trying to reconnect in %d ms', this.reconnectWait);
                 setTimeout(this.connect.bind(this), this.reconnectWait);

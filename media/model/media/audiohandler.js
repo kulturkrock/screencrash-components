@@ -6,11 +6,25 @@ const $ = require('jquery');
 
 const AUDIO_BUFFER_LENGTH_SECONDS = 30;
 
+let deviceId = undefined;
+
+navigator.mediaDevices.enumerateDevices().then(devices => { 
+    console.log(devices);
+    device = devices.filter(device=>device.label==="My 5.1 Combine Sink")[0];
+    //device = devices.filter(device=>device.label==="Built-in Audio Digital Surround 5.1 (HDMI 3)")[0]
+    console.log(device);
+    deviceId = device.deviceId;
+    const audioContext = new AudioContext( { sinkId: deviceId } );
+    console.log(audioContext);
+    console.log(audioContext.destination.maxChannelCount);
+})
+
 class SeamlessAudio extends EventTarget {
 
     constructor() {
         super();
-        this.audioContext = new AudioContext();
+        //this.audioContext = new AudioContext();
+        this.audioContext = new AudioContext( { sinkId: deviceId } )
         this.audioContextSeekOffset = 0;
         this.audioBufferSource = null;
         this.volumeControlNode = null;
@@ -29,13 +43,14 @@ class SeamlessAudio extends EventTarget {
 
     async init(uiWrapper, id, audioDisabled, autostart, filePath) {
         // TODO: Set number of channels based on audio file
+        //console.log(this.audioContext)
         this.audioBuffer = this.audioContext.createBuffer(
-            2,
+            6,
             this.audioContext.sampleRate * AUDIO_BUFFER_LENGTH_SECONDS,
             this.audioContext.sampleRate
         );
         this.silenceBuffer = this.audioContext.createBuffer(
-            2,
+            6,
             this.audioContext.sampleRate * AUDIO_BUFFER_LENGTH_SECONDS,
             this.audioContext.sampleRate
         );

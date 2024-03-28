@@ -6,25 +6,15 @@ const $ = require('jquery');
 
 const AUDIO_BUFFER_LENGTH_SECONDS = 30;
 
-let deviceId = undefined;
-
-navigator.mediaDevices.enumerateDevices().then(devices => { 
-    console.log(devices);
-    device = devices.filter(device=>device.label==="My 5.1 Combine Sink")[0];
-    //device = devices.filter(device=>device.label==="Built-in Audio Digital Surround 5.1 (HDMI 3)")[0]
-    console.log(device);
-    deviceId = device.deviceId;
-    const audioContext = new AudioContext( { sinkId: deviceId } );
-    console.log(audioContext);
-    console.log(audioContext.destination.maxChannelCount);
-})
 
 class SeamlessAudio extends EventTarget {
 
     constructor() {
         super();
         //this.audioContext = new AudioContext();
-        this.audioContext = new AudioContext( { sinkId: deviceId } )
+        this.audioContext = new AudioContext()
+        this.destination = this.audioContext.createMediaStreamDestination();
+        this.element = new Audio()
         this.audioContextSeekOffset = 0;
         this.audioBufferSource = null;
         this.volumeControlNode = null;
@@ -43,7 +33,7 @@ class SeamlessAudio extends EventTarget {
 
     async init(uiWrapper, id, audioDisabled, autostart, filePath) {
         // TODO: Set number of channels based on audio file
-        //console.log(this.audioContext)
+        this.destination.channelCount = 6;
         this.audioBuffer = this.audioContext.createBuffer(
             6,
             this.audioContext.sampleRate * AUDIO_BUFFER_LENGTH_SECONDS,
@@ -61,9 +51,11 @@ class SeamlessAudio extends EventTarget {
         this.audioBufferSource.buffer = this.audioBuffer;
         this.volumeControlNode = this.audioContext.createGain();
         this.audioBufferSource.connect(this.volumeControlNode);
-        this.volumeControlNode.connect(this.audioContext.destination);
+        this.volumeControlNode.connect(this.destination);
+        this.element.srcObject = this.destination.stream;
         this.audioBufferSource.loop = true;
         this.audioBufferSource.start();
+        this.element.play();
         this.playing = true;
         this.dispatchEvent(
             new CustomEvent('changed')

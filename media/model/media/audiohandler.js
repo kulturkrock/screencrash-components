@@ -30,7 +30,7 @@ class SeamlessAudio extends EventTarget {
     }
 
     async init(uiWrapper, id, audioDisabled, autostart, filePath) {
-        // TODO: Set number of channels based on audio file
+        // When running this with only 2 output channels on the computer, it plays the first two.
         this.destination.channelCount = 6;
         this.audioBuffer = this.audioContext.createBuffer(
             6,

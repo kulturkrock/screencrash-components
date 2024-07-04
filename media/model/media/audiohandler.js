@@ -6,15 +6,13 @@ const $ = require('jquery');
 
 const AUDIO_BUFFER_LENGTH_SECONDS = 30;
 
-
 class SeamlessAudio extends EventTarget {
 
     constructor() {
         super();
-        //this.audioContext = new AudioContext();
-        this.audioContext = new AudioContext()
+        this.audioContext = new AudioContext();
         this.destination = this.audioContext.createMediaStreamDestination();
-        this.element = new Audio()
+        this.element = new Audio();
         this.audioContextSeekOffset = 0;
         this.audioBufferSource = null;
         this.volumeControlNode = null;

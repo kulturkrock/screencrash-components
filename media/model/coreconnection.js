@@ -49,17 +49,13 @@ module.exports = class CoreConnection extends EventTarget {
         }
     }
 
-    onDisconnected(event) {
+    onDisconnected() {
         this.socket = null;
-        if (!event.wasClean) {
-            if (this.reconnect) {
-                console.log('Trying to reconnect in %d ms', this.reconnectWait);
-                setTimeout(this.connect.bind(this), this.reconnectWait);
-            } else {
-                console.log('Unexpectedly lost connection');
-            }
+        if (this.reconnect) {
+            console.log('Trying to reconnect in %d ms', this.reconnectWait);
+            setTimeout(this.connect.bind(this), this.reconnectWait);
         } else {
-            console.log('Disconnected from server');
+            console.log('Unexpectedly lost connection');
         }
         this.dispatchEvent(new CustomEvent('disconnected'));
     }

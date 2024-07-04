@@ -11,6 +11,8 @@ class SeamlessAudio extends EventTarget {
     constructor() {
         super();
         this.audioContext = new AudioContext();
+        this.destination = this.audioContext.createMediaStreamDestination();
+        this.element = new Audio();
         this.audioContextSeekOffset = 0;
         this.audioBufferSource = null;
         this.volumeControlNode = null;
@@ -28,14 +30,15 @@ class SeamlessAudio extends EventTarget {
     }
 
     async init(uiWrapper, id, audioDisabled, autostart, filePath) {
-        // TODO: Set number of channels based on audio file
+        // When running this with only 2 output channels on the computer, it plays the first two.
+        this.destination.channelCount = 6;
         this.audioBuffer = this.audioContext.createBuffer(
-            2,
+            6,
             this.audioContext.sampleRate * AUDIO_BUFFER_LENGTH_SECONDS,
             this.audioContext.sampleRate
         );
         this.silenceBuffer = this.audioContext.createBuffer(
-            2,
+            6,
             this.audioContext.sampleRate * AUDIO_BUFFER_LENGTH_SECONDS,
             this.audioContext.sampleRate
         );
@@ -46,9 +49,11 @@ class SeamlessAudio extends EventTarget {
         this.audioBufferSource.buffer = this.audioBuffer;
         this.volumeControlNode = this.audioContext.createGain();
         this.audioBufferSource.connect(this.volumeControlNode);
-        this.volumeControlNode.connect(this.audioContext.destination);
+        this.volumeControlNode.connect(this.destination);
+        this.element.srcObject = this.destination.stream;
         this.audioBufferSource.loop = true;
         this.audioBufferSource.start();
+        this.element.play();
         this.playing = true;
         this.dispatchEvent(
             new CustomEvent('changed')

@@ -1,4 +1,7 @@
 # screencrash-components
+
+> **Deprecated:** The code now lives in the [Screencrash repo](https://github.com/kulturkrock/screencrash)
+
 Repository for the loose components (media, audio, robot etc.) of Screencrash (also known as Skärmkrock)
 
 ## Running components
